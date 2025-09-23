@@ -569,9 +569,10 @@ export default function Payments() {
         </div>
       )}
       {/* Payments Table */}
-     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+   <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+  {/* Table Section with Scroll */}
   <div className="overflow-x-auto">
-    <div className="max-h-[400px] overflow-y-auto"> {/* Added wrapper for vertical scroll */}
+    <div className="max-h-[300px] overflow-y-auto"> {/* vertical scroll only for table */}
       <table className="w-full">
         <thead className="bg-gray-50 sticky top-0 z-10">
           <tr>
@@ -660,9 +661,9 @@ export default function Payments() {
     </div>
   )}
 
-  {/* Pagination */}
+  {/* Pagination - stays fixed at bottom */}
   {filteredPayments.length > 0 && (
-    <div className="bg-white px-6 py-3 flex items-center justify-between border-t border-gray-200">
+    <div className="bg-white px-6 py-3 flex items-center justify-between border-t border-gray-200 sticky bottom-0">
       <div className="text-sm text-gray-700">
         Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
         <span className="font-medium">
@@ -704,6 +705,7 @@ export default function Payments() {
     </div>
   )}
 </div>
+
 
     </div>
   );

@@ -48,7 +48,7 @@ function formatDateTime(iso) {
 }
 
 function StatusPill({ status }) {
-  const base = "inline-flex items-center rounded-md px-2 py-3 text-xs font-semibold"
+  const base = "inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold"
   const tone =
     status === "Filed" || status === "Document verified"
       ? "bg-[#3DA79C] text-white"
@@ -554,281 +554,341 @@ const Returns = () => {
         <main className="flex-1 p-2 md:p-3">
           {selectedReturnId ? (
             // Customer Detail View
-            <div className="mx-auto max-w-6xl space-y-6">
-              <header className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button
-                    className="rounded-md p-2 hover:bg-gray-100"
-                    onClick={() => setSelectedReturnId(null)}
-                    aria-label="Go back"
-                  >
-                    <ArrowLeft className="h-5 w-5 text-gray-600" />
-                  </button>
-                  <h1 className="text-2xl font-bold text-gray-900">Return Details</h1>
-                </div>
-              </header>
+            <div className="mx-auto max-w-6xl space-y-2">
+  <header className="flex items-center justify-between sticky top-0 bg-white z-20 py-2 border-b border-gray-200">
+    <div className="flex items-center gap-3">
+      <button
+        className="rounded-md p-2 hover:bg-gray-100"
+        onClick={() => setSelectedReturnId(null)}
+        aria-label="Go back"
+      >
+        <ArrowLeft className="h-5 w-5 text-gray-600" />
+      </button>
+      <h1 className="text-xl font-bold text-gray-900">Return Details</h1>
+    </div>
+  </header>
 
-              {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                  <span className="block sm:inline">{error}</span>
-                </div>
-              )}
+  {error && (
+    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+      <span className="block sm:inline">{error}</span>
+    </div>
+  )}
 
-              {isLoadingDetail ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                </div>
-              ) : (
-                <section className="space-y-3">
-                  {detailedReturns.length === 0 ? (
-                    <div className="text-center py-12">
-                      <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">No tax return details found</h3>
-                      <p className="mt-1 text-sm text-gray-500">Could not load details for this return.</p>
-                    </div>
-                  ) : (
-                    detailedReturns.map((r) => (
-                      <div key={r.id} className="rounded-md border border-gray-200 bg-white">
-                        <div className="flex items-center justify-between px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="text-gray-900">{r.name}</div>
-                          </div>
-                          <div className="flex items-center justify-center gap-3">
-                            <span className="text-sm text-gray-600">status:</span>
-                            <StatusPill status={r.status} />
-                          </div>
-                        </div>
+  {isLoadingDetail ? (
+    <div className="flex justify-center py-12">
+      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+    </div>
+  ) : (
+    // ✅ Scroll wrapper
+    <section className="space-y-3 max-h-[calc(100vh-150px)] overflow-y-auto pr-1">
+      {detailedReturns.length === 0 ? (
+        <div className="text-center py-12">
+          <FileText className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No tax return details found
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Could not load details for this return.
+          </p>
+        </div>
+      ) : (
+        detailedReturns.map((r) => (
+          <div
+            key={r.id}
+            className="rounded-md border border-gray-200 bg-white"
+          >
+            <div className="flex items-center justify-between px-4 py-1">
+              <div className="flex items-center gap-2">
+                <div className="text-gray-900">{r.name}</div>
+              </div>
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-sm text-gray-600">status:</span>
+                <StatusPill status={r.status} />
+              </div>
+            </div>
 
-                        <div className="border-t">
-                          <div className="grid items-start gap-4 p-4 md:grid-cols-4 md:p-6">
-                            <div className="md:col-span-3 rounded-md border border-gray-200 bg-white">
-                              <div className="p-4 md:p-6">
-                                <h2 className="mb-2 text-lg font-semibold text-gray-900">Return details</h2>
-                                <p className="text-pretty text-sm leading-6 text-gray-700">{r.details}</p>
-                                <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-gray-600">
-                                  <div>
-                                    <div className="text-gray-500">Return</div>
-                                    <div className="font-medium text-gray-900">{r.name}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-gray-500">Type</div>
-                                    <div className="font-medium text-gray-900">{r.type}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-gray-500">Last updated</div>
-                                    <div className="font-medium text-gray-900">{formatDate(r.updatedAt)}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-gray-500">Status</div>
-                                    <StatusPill status={r.status} />
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="border-t border-gray-200 p-4 md:p-5">
-                                <div className="mb-2 text-sm font-medium text-gray-900">
-                                  Documents ({documents.length})
-                                </div>
-                                <div className="flex items-stretch gap-4 overflow-x-auto">
-                                  {documents.map((d) => (
-                                    <div
-                                      key={d.id}
-                                      className="group relative flex h-16 w-24 shrink-0 cursor-pointer items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100"
-                                      title={d.doc_name}
-                                    >
-                                      <DocIcon type={d.doc_type} className="text-gray-600 h-5 w-5" />
-                                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
-                                        {d.doc_name && d.doc_name.length > 14
-                                          ? d.doc_name.slice(0, 14) + "…"
-                                          : d.doc_name || "Document"}
-                                      </div>
-                                      <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                        <button
-                                          className="rounded bg-white/90 p-1 hover:bg-white"
-                                          aria-label="View"
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            alert(`Viewing ${d.doc_name || "document"}`)
-                                          }}
-                                        >
-                                          <Eye className="h-3.5 w-3.5 text-gray-700" />
-                                        </button>
-                                        <button
-                                          className="rounded bg-white/90 p-1 hover:bg-white"
-                                          aria-label="Download"
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            downloadDocument(d)
-                                          }}
-                                        >
-                                          <Download className="h-3.5 w-3.5 text-gray-700" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                  {documents.length === 0 && (
-                                    <div className="text-sm text-gray-500 py-4">No documents found for this return</div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            <aside className="self-start rounded-md border border-gray-200 bg-white p-4 md:p-6">
-                              <div className="mb-4 flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900">Pricing Information</h3>
-                                <DollarSign className="h-5 w-5 text-blue-600" />
-                              </div>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Type</label>
-                                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
-                                    {r.pricing_type ? (r.pricing_type === "hourly" ? "Hourly" : "Lump Sum") : "Not set"}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
-                                    {r.price ? `$${r.price}` : "Not set"}
-                                  </div>
-                                </div>
-                              </div>
-                            </aside>
-
-                            <div className="md:col-span-4 rounded-md border border-gray-200 bg-white p-4 md:p-6">
-                              <div className="grid gap-6">
-                                <div className="rounded-md border border-gray-200 bg-white p-3 md:p-4">
-                                  <div className="mb-2 flex items-center gap-2">
-                                    <MessageSquare className="h-4 w-4 text-gray-500" />
-                                    <span className="text-sm font-medium text-gray-900">
-                                      Add Comment & Upload Documents
-                                    </span>
-                                  </div>
-                                  <div className="mb-3">
-                                    <textarea
-                                      value={newComment}
-                                      onChange={(e) => setNewComment(e.target.value)}
-                                      placeholder="Write a comment or attach documents..."
-                                      rows={4}
-                                      className="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <div className="mt-2 flex items-center justify-between">
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <input
-                                          ref={fileInputRef}
-                                          type="file"
-                                          multiple
-                                          accept=".pdf,.jpg,.jpeg,.png,.csv,.zip"
-                                          className="sr-only"
-                                          onChange={onFilesSelected}
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => fileInputRef.current?.click()}
-                                          className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                                          disabled={isUploading}
-                                        >
-                                          <Paperclip className="h-4 w-4" />
-                                          Attach Files
-                                        </button>
-                                        {composerAttachments.map((a) => (
-                                          <span
-                                            key={a.id}
-                                            className="inline-flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700"
-                                          >
-                                            <Paperclip className="h-3.5 w-3.5 text-gray-500" />
-                                            {a.name}
-                                            <button
-                                              type="button"
-                                              aria-label="Remove attachment"
-                                              className="rounded p-0.5 hover:bg-gray-200"
-                                              onClick={() =>
-                                                setComposerAttachments((prev) => prev.filter((d) => d.id !== a.id))
-                                              }
-                                            >
-                                              <X className="h-3 w-3 text-gray-500" />
-                                            </button>
-                                          </span>
-                                        ))}
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={addComment}
-                                        disabled={
-                                          isUploading || (!newComment.trim() && composerAttachments.length === 0)
-                                        }
-                                        className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                      >
-                                        {isUploading ? (
-                                          <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Uploading...
-                                          </>
-                                        ) : (
-                                          "Post Comment"
-                                        )}
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="rounded-md border border-gray-200 bg-white p-3 md:p-4">
-                                  <div className="mb-2 flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-gray-500" />
-                                    <span className="text-sm font-medium text-gray-900">Documents Timeline</span>
-                                  </div>
-
-                                  <ol className="relative mt-3 max-h-96 overflow-y-auto">
-                                    {timeline.map((t, index) => (
-                                      <li key={t.id} className="flex">
-                                        <div className="flex flex-col items-center flex-shrink-0 mr-4">
-                                          {index !== 0 && <div className="w-0.5 h-4 bg-blue-100 mb-1"></div>}
-
-                                          <div className="h-4 w-4 rounded-full border-2 border-white bg-blue-600 ring-2 ring-blue-100 z-10"></div>
-
-                                          {index !== timeline.length - 1 && (
-                                            <div className="w-0.5 h-4 bg-blue-100 mt-1 flex-grow"></div>
-                                          )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                          <div className="p-3 rounded-md border border-gray-100 bg-gray-50">
-                                            <div className="mb-1 flex items-center justify-between">
-                                              <div className="flex items-center gap-2">
-                                                <span className="text-sm font-medium text-gray-900">
-                                                  {t.created_by_name} ({t.createdby_type})
-                                                </span>
-                                              </div>
-                                              <span className="text-xs text-gray-500">
-                                                {formatDateTime(t.created_at)}
-                                              </span>
-                                            </div>
-
-                                            {t.comment && <p className="text-sm text-gray-700">{t.comment}</p>}
-
-                                            <div className="mt-2 text-xs text-gray-500">
-                                              Return ID: {t.return_id} | Document IDs: {t.document_ids}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </li>
-                                    ))}
-                                    {timeline.length === 0 && (
-                                      <li className="text-sm text-gray-500 py-4 text-center">No activity yet</li>
-                                    )}
-                                  </ol>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+            <div>
+              <div className="grid items-start gap-4 p-2 md:grid-cols-4 md:p-2">
+                {/* Return details */}
+                <div className="md:col-span-3 rounded-md border border-gray-200 bg-white">
+                  <div className="p-2 md:p-2">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Return details
+                    </h2>
+                    <p className="text-pretty text-sm leading-3 text-gray-700">
+                      {r.details}
+                    </p>
+                    <div className="grid grid-cols-2 text-sm text-gray-600">
+                      <div>
+                        <div className="text-gray-500">Return</div>
+                        <div className="font-medium text-gray-900">
+                          {r.name}
                         </div>
                       </div>
-                    ))
-                  )}
-                </section>
-              )}
+                      <div>
+                        <div className="text-gray-500">Type</div>
+                        <div className="font-medium text-gray-900">
+                          {r.type}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Last updated</div>
+                        <div className="font-medium text-gray-900">
+                          {formatDate(r.updatedAt)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Status</div>
+                        <StatusPill status={r.status} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Documents */}
+                  <div className="border-t border-gray-200 p-2 md:p-2">
+                    <div className="text-sm font-medium text-gray-900">
+                      Documents ({documents.length})
+                    </div>
+                    <div className="flex items-stretch gap-2 overflow-x-auto">
+                      {documents.map((d) => (
+                        <div
+                          key={d.id}
+                          className="group relative flex h-12 w-20 shrink-0 cursor-pointer items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100"
+                          title={d.doc_name}
+                        >
+                          <DocIcon
+                            type={d.doc_type}
+                            className="text-gray-600 h-5 w-5"
+                          />
+                          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                            {d.doc_name && d.doc_name.length > 14
+                              ? d.doc_name.slice(0, 14) + "…"
+                              : d.doc_name || "Document"}
+                          </div>
+                          <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button
+                              className="rounded bg-white/90 p-1 hover:bg-white"
+                              aria-label="View"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                alert(
+                                  `Viewing ${d.doc_name || "document"}`
+                                )
+                              }}
+                            >
+                              <Eye className="h-3.5 w-3.5 text-gray-700" />
+                            </button>
+                            <button
+                              className="rounded bg-white/90 p-1 hover:bg-white"
+                              aria-label="Download"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                downloadDocument(d)
+                              }}
+                            >
+                              <Download className="h-3.5 w-3.5 text-gray-700" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {documents.length === 0 && (
+                        <div className="text-sm text-gray-500 py-4">
+                          No documents found for this return
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing Information */}
+                <aside className="self-start rounded-md border border-gray-200 bg-white p-3 md:p-4">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Pricing Information
+                    </h3>
+                    <DollarSign className="h-5 w-5 text-blue-600" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Pricing Type
+                      </label>
+                      <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
+                        {r.pricing_type
+                          ? r.pricing_type === "hourly"
+                            ? "Hourly"
+                            : "Lump Sum"
+                          : "Not set"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Price
+                      </label>
+                      <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
+                        {r.price ? `$${r.price}` : "Not set"}
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+
+                {/* Comments + Timeline */}
+                <div className="md:col-span-4 rounded-md border-gray-200 bg-white p-1 md:p-1">
+                  <div className="grid gap-3">
+                    {/* Comment box */}
+                    <div className="rounded-md border border-gray-200 bg-white p-1 md:p-2">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          Add Comment & Upload Documents
+                        </span>
+                      </div>
+                      <div className="mb-1">
+                        <textarea
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          placeholder="Write a comment or attach documents..."
+                          rows={4}
+                          className="w-full resize-none rounded-md border border-gray-300 px-3 py-1 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="mt-1 flex items-center justify-between">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              multiple
+                              accept=".pdf,.jpg,.jpeg,.png,.csv,.zip"
+                              className="sr-only"
+                              onChange={onFilesSelected}
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                fileInputRef.current?.click()
+                              }
+                              className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-sm text-gray-700 hover:bg-gray-50"
+                              disabled={isUploading}
+                            >
+                              <Paperclip className="h-4 w-4" />
+                              Attach Files
+                            </button>
+                            {composerAttachments.map((a) => (
+                              <span
+                                key={a.id}
+                                className="inline-flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700"
+                              >
+                                <Paperclip className="h-3.5 w-3.5 text-gray-500" />
+                                {a.name}
+                                <button
+                                  type="button"
+                                  aria-label="Remove attachment"
+                                  className="rounded p-0.5 hover:bg-gray-200"
+                                  onClick={() =>
+                                    setComposerAttachments((prev) =>
+                                      prev.filter((d) => d.id !== a.id)
+                                    )
+                                  }
+                                >
+                                  <X className="h-3 w-3 text-gray-500" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={addComment}
+                            disabled={
+                              isUploading ||
+                              (!newComment.trim() &&
+                                composerAttachments.length === 0)
+                            }
+                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isUploading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              "Post Comment"
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="rounded-md border border-gray-200 bg-white p-1 md:p-4">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          Documents Timeline
+                        </span>
+                      </div>
+
+                      <ol className="relative mt-1 max-h-96 overflow-y-auto">
+                        {timeline.map((t, index) => (
+                          <li key={t.id} className="flex">
+                            <div className="flex flex-col items-center flex-shrink-0 mr-4">
+                              {index !== 0 && (
+                                <div className="w-0.5 h-4 bg-blue-100 mb-1"></div>
+                              )}
+
+                              <div className="h-4 w-4 rounded-full border-2 border-white bg-blue-600 ring-2 ring-blue-100 z-10"></div>
+
+                              {index !== timeline.length - 1 && (
+                                <div className="w-0.5 h-4 bg-blue-100 mt-1 flex-grow"></div>
+                              )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="p-3 rounded-md border border-gray-100 bg-gray-50">
+                                <div className="mb-1 flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {t.created_by_name} (
+                                      {t.createdby_type})
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    {formatDateTime(t.created_at)}
+                                  </span>
+                                </div>
+
+                                {t.comment && (
+                                  <p className="text-sm text-gray-700">
+                                    {t.comment}
+                                  </p>
+                                )}
+
+                                <div className="mt-2 text-xs text-gray-500">
+                                  Return ID: {t.return_id} | Document
+                                  IDs: {t.document_ids}
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                        {timeline.length === 0 && (
+                          <li className="text-sm text-gray-500 py-4 text-center">
+                            No activity yet
+                          </li>
+                        )}
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+        ))
+      )}
+    </section>
+  )}
+</div>
+
           ) : (
             // Main Returns List View
             <motion.div

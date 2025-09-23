@@ -524,7 +524,7 @@ export default function Invoices() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* View Invoice Modal */}
       {viewInvoice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50 p-4">
+        <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto relative">
             <button
               onClick={() => setViewInvoice(null)}
@@ -621,13 +621,7 @@ export default function Invoices() {
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-4 mt-6">
-                <button
-                  onClick={() => handleDownloadInvoice(viewInvoice)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? 'Generating PDF...' : 'Download PDF'}
-                </button>
+                
                 <button
                   onClick={() => setViewInvoice(null)}
                   className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
@@ -788,7 +782,6 @@ export default function Invoices() {
               );
             })}
           </div>
-
         </motion.div>
       )}
       {/* Filters */}
@@ -849,7 +842,7 @@ export default function Invoices() {
                     onClick={() => setFilterStatus('')}
                     className="ml-2 text-blue-600 hover:text-blue-800"
                   >
-                    <X className="w-3 h-3" />
+                    {/* <X className="w-3 h-3" /> */}
                   </button>
                 </div>
               )}
