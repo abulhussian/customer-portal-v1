@@ -480,16 +480,17 @@ const Returns = () => {
     switch (status.toLowerCase()) {
       case "completed":
       case "document verified":
+        return "bg-gradient-to-br from-teal-400 to-emerald-500 text-white";
       case "filed return":
-        return "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white";
+        return "bg-gradient-to-br from-lime-400 to-green-500 text-white";
       case "in review":
-        return "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white";
+        return "bg-gradient-to-br from-emerald-400 to-green-500 text-white";
       case "in preparation":
-        return "bg-gradient-to-r from-teal-500 to-teal-600 text-white";
+        return "bg-gradient-to-br from-violet-400 to-purple-500 text-white";
       case "ready to file":
-        return "bg-gradient-to-r from-violet-600 to-violet-700 text-white";
+        return "bg-gradient-to-br from-slate-400 to-gray-500 text-white";
       case "initial request":
-        return "bg-gradient-to-r from-amber-400 to-amber-500 text-white";
+        return "bg-gradient-to-br from-amber-300 to-orange-400 text-white";
       case "pending":
         return "bg-gradient-to-r from-orange-500 to-red-500 text-white";
       default:
