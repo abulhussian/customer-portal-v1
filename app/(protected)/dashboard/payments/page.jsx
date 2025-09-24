@@ -533,9 +533,9 @@ export default function Payments() {
       {/* Payments Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
         {/* Table Section with Scroll */}
-        <div className="overflow-x-auto">
-          <div className="max-h-[300px] sm:max-h-[400px] overflow-y-auto">
-            <table className="w-full min-w-[800px]">
+        <div className="overflow-y-auto">
+          <div className="max-h-[300px] sm:max-h-[300px]" style={{ overflow: 'scroll' }}>
+            <table className="w-full">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">

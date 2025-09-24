@@ -72,7 +72,7 @@ const Login = () => {
     try {
       const identifier = activeTab === "email" ? email.toLowerCase().trim() : mobile.trim()
 
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`http://192.168.1.5:3000/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

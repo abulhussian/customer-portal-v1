@@ -861,7 +861,7 @@ export default function Invoices() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto " style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
+          <div className=""style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
             <div className="max-h-[300px] " style={{ overflow: 'scroll' }}>
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50 sticky top-0 z-10">

@@ -182,7 +182,7 @@ const Dashboard = () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     ) : (
-      <main className="flex overflow-y-auto p-4 lg:p-1 ">
+      <main className="flex overflow-y-auto p-4 lg:pl-4  ">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -243,7 +243,7 @@ const Dashboard = () => {
 
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {/* Recent Returns */}
             <div className="lg:col-span-2">
               <Card>
