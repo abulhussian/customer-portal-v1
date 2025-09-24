@@ -20,7 +20,7 @@ export default function Payments() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(7);
+  const [itemsPerPage] = useState(10);
   const [appliedFilters, setAppliedFilters] = useState({
     status: 'All',
     dateRange: 'All'
@@ -534,7 +534,7 @@ export default function Payments() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
         {/* Table Section with Scroll */}
         <div className="overflow-y-auto">
-          <div className="max-h-[300px] sm:max-h-[300px]" style={{ overflow: 'scroll' }}>
+          <div className="max-h-[300px] sm:max-h-[400px]" style={{ overflow: 'scroll' }}>
             <table className="w-full">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>

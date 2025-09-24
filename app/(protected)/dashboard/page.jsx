@@ -174,7 +174,7 @@ const Dashboard = () => {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 3);
 
-  const recentActivity = activityLogs.slice(-5).reverse()
+  const recentActivity = activityLogs.slice(-4).reverse()
 
   return (
     loading ? (
@@ -196,7 +196,7 @@ const Dashboard = () => {
     className="shadow-lg hover:shadow-xl transition-all bg-[#8461B4] duration-300 border-0 rounded-tl-[20px] flex flex-col p-2 text-start"
   >
     {/* icon + title in one line */}
-    <div className="flex items-center gap-2 text-white mb-1">
+    <div className="flex items-center gap-2 text-white ">
       <FileText className="h-6 w-6" />
       <h3 className="text-lg font-bold">Total Returns</h3>
     </div>
@@ -225,7 +225,7 @@ const Dashboard = () => {
   <div
     className="shadow-lg hover:shadow-xl transition-all rounded-br-[20px] duration-300 border-0 overflow-hidden flex flex-col bg-[#4C56CC] p-2 text-start"
   >
-    <div className="flex items-center gap-2 text-white mb-2">
+    <div className="flex items-center gap-2 text-white ">
       <FileText className="h-6 w-6" />
       <h3 className="text-lg font-bold">Outsatnding Invoices</h3>
     </div>
@@ -243,7 +243,7 @@ const Dashboard = () => {
 
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
             {/* Recent Returns */}
             <div className="lg:col-span-2">
               <Card>
@@ -265,12 +265,12 @@ const Dashboard = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                   ) : returns.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {recentReturns.map((returnItem) => (
                         <motion.div
                           key={returnItem.return_id}
                           whileHover={{ scale: 1.01 }}
-                          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                          className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -315,23 +315,23 @@ const Dashboard = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                   ) : error ? (
-                    <div className="text-center py-4">
+                    <div className="text-center py-2">
                       <Activity className="w-8 h-8 text-red-400 mx-auto mb-2" />
                       <p className="text-sm text-red-500">Failed to load activities</p>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={fetchActivityLogs}
-                        className="mt-2"
+                        className="mt-1"
                       >
                         Retry
                       </Button>
                     </div>
                   ) : recentActivity.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {recentActivity.map((activity, index) => (
                         <div key={activity.id || index} className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <Activity className="w-4 h-4 text-blue-600" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -355,52 +355,41 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks to get you started</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Button
-                  variant="outline"
-                  className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
-                  asChild
-                >
-                  <Link href="/dashboard/returns">
-                    <FileText className="w-6 h-6" />
-                    <span className="font-medium">New Tax Return</span>
-                    <span className="text-xs text-gray-500">Start a new filing</span>
-                  </Link>
-                </Button>
+          <div className="bg-white rounded-lg shadow-sm border-gray-200 pl-2">
+  <h2 className="text-md font-bold">Quick Actions</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    {/* New Tax Return */}
+    <Link
+      href="/dashboard/returns"
+      className="border rounded-md p-3 flex flex-col items-center gap-1 hover:bg-gray-50 transition"
+    >
+      <FileText className="w-5 h-5 text-gray-700" />
+      <span className="text-sm font-medium">New Tax Return</span>
+      <span className="text-xs text-gray-500">Start a new filing</span>
+    </Link>
 
-                <Button
-                  variant="outline"
-                  className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
-                  asChild
-                >
-                  <Link href="/dashboard/invoices">
-                    <Activity className="w-6 h-6" />
-                    <span className="font-medium">View Invoices</span>
-                    <span className="text-xs text-gray-500">Check invoice status</span>
-                  </Link>
-                </Button>
+    {/* View Invoices */}
+    <Link
+      href="/dashboard/invoices"
+      className="border rounded-md p-3 flex flex-col items-center gap-1 hover:bg-gray-50 transition"
+    >
+      <Activity className="w-5 h-5 text-gray-700" />
+      <span className="text-sm font-medium">View Invoices</span>
+      <span className="text-xs text-gray-500">Check invoice status</span>
+    </Link>
 
-                <Button
-                  variant="outline"
-                  className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
-                  asChild
-                >
-                  <Link href="/dashboard/payments">
-                    <CreditCard className="w-6 h-6" />
+    {/* Payments */}
+    <Link
+      href="/dashboard/payments"
+      className="border rounded-md p-3 flex flex-col items-center gap-1 hover:bg-gray-50 transition"
+    >
+      <CreditCard className="w-5 h-5 text-gray-700" />
+      <span className="text-sm font-medium">Payments</span>
+      <span className="text-xs text-gray-500">Track all payments</span>
+    </Link>
+  </div>
+</div>
 
-                    <span className="font-medium">Payments</span>
-                    <span className="text-xs text-gray-500">Track all payments</span>
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </motion.div>
       </main>
     )

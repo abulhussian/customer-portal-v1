@@ -263,7 +263,7 @@ export default function Invoices() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5; // ✅ default 10 rows
+  const rowsPerPage = 10; // ✅ default 10 rows
 
   // Calculate pagination values
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -523,7 +523,7 @@ export default function Invoices() {
   }
 
   return (
-    <div className="p-3 h-screen max-w-7xl mx-auto">
+    <div className="p-3 h-screen max-w-full overflow-hidden flex flex-col">
       {/* View Invoice Modal */}
       {viewInvoice && (
         <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-4">

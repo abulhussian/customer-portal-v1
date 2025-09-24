@@ -123,7 +123,7 @@ const Returns = () => {
   const [invoiceCreationDateTo, setInvoiceCreationDateTo] = useState("")
   const [showInvoiceFilters, setShowInvoiceFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 7;
+  const itemsPerPage = 10;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -1304,8 +1304,8 @@ const Returns = () => {
                       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                         <div>
                           <p className="text-sm text-gray-700">
-                            Showing <span className="font-medium">{(currentPage - 1) * 7 + 1}</span> to{' '}
-                            <span className="font-medium">{Math.min(currentPage * 7, filteredReturns.length)}</span> of{' '}
+                            Showing <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> to{' '}
+                            <span className="font-medium">{Math.min(currentPage * 10, filteredReturns.length)}</span> of{' '}
                             <span className="font-medium">{filteredReturns.length}</span> results
                           </p>
                         </div>
@@ -1322,7 +1322,7 @@ const Returns = () => {
                               Previous
                             </button>
 
-                            {Array.from({ length: Math.ceil(filteredReturns.length / 7) }, (_, i) => i + 1).map(page => (
+                            {Array.from({ length: Math.ceil(filteredReturns.length / 10) }, (_, i) => i + 1).map(page => (
                               <button
                                 key={page}
                                 onClick={() => setCurrentPage(page)}
@@ -1336,9 +1336,9 @@ const Returns = () => {
                             ))}
 
                             <button
-                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredReturns.length / 7)))}
-                              disabled={currentPage === Math.ceil(filteredReturns.length / 7)}
-                              className={`relative px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed ${currentPage === Math.ceil(filteredReturns.length / 7) ? '' : ''
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredReturns.length / 10)))}
+                              disabled={currentPage === Math.ceil(filteredReturns.length / 10)}
+                              className={`relative px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed ${currentPage === Math.ceil(filteredReturns.length / 10) ? '' : ''
                                 }`}
                             >
                               <span className="sr-only">Next</span>

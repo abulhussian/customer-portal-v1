@@ -99,7 +99,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex h-8 w-8 p-0 text-white absolute top-4 right-0 hover:bg-white/20"
+            className="hidden lg:flex h-8 w-8 p-0 text-white absolute top-0 right-0 hover:bg-white/20"
           >
             {isCollapsed ? <ChevronRight className="w-7 h-7" /> : <ChevronLeft className="w-7 h-7" />}
           </Button>
