@@ -311,10 +311,10 @@ export default function DashboardLayout({ children, isOpen, setIsOpen, currentPa
                   className="flex items-center gap-3"
                 >
                   <div className="rounded-xl flex items-center justify-center shadow-lg bg-white/20" onClick={() => router.push("/dashboard")}>
-                    <img src="/favicon.svg" alt="logo" className="w-7 h-7" />
+                    <img src="/favicon.svg" alt="logo" className="w-8 h-8" />
                   </div>
                   <div onClick={() => router.push("/dashboard")} className="cursor-pointer">
-                    <h1 className="font-bold text-md text-white">Invertio.us</h1>
+                    <h1 className="font-bold text-xl text-white">Invertio.us</h1>
                   </div>
                 </motion.div>
               </div>

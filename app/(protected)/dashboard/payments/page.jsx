@@ -25,6 +25,7 @@ export default function Payments() {
     status: 'All',
     dateRange: 'All'
   });
+  const [selectedRowId, setSelectedRowId] = useState(null);
 
   useEffect(() => {
     try {
@@ -305,73 +306,126 @@ export default function Payments() {
 
       {/* Summary Cards - Responsive Grid */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        {/* Paid Transactions Card (Top Right Curve) */}
-        <motion.div
-          whileHover={{ y: -3 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-tl-2xl p-2 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
-        >
-          <div className="flex flex-col items-start justify-between gap-2">
-            <div className="p-1 rounded-lg bg-white/20">
-              <CreditCard className="h-4 w-4 text-white" />
-            </div>
-            <h3 className="text-xl font-bold">Paid Transactions</h3>
+  {/* Paid Transactions Card (Top Right Curve) */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => {
+      if (filters.status === "paid") {
+        setFilters({ ...filters, status: "All" });
+        setAppliedFilters({ ...appliedFilters, status: "All" });
+      } else {
+        setFilters({ ...filters, status: "paid" });
+        setAppliedFilters({ ...appliedFilters, status: "paid" });
+      }
+    }}
+    className="relative rounded-tl-2xl rounded-sm p-2 shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-r from-emerald-500 to-emerald-600 text-white cursor-pointer"
+  >
+    {/* Tick Indicator */}
+    {filters.status === "paid" && (
+      <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
+          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full p-1">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
           </div>
-          <div>
-            <div className="text-xl font-bold ">
-              {filteredPayments.filter(p => p.status === "paid").length}
-            </div>
-            <div className="mt-0.5 text-xs opacity-90">
-              Total Successful transactions
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Total Transactions Card */}
-        <motion.div
-          whileHover={{ y: -3 }}
-          transition={{ duration: 0.2 }}
-          className="p-2 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-r from-teal-500 to-teal-600 text-white"
-        >
-          <div className="flex flex-col items-start justify-between  gap-2">
-            <div className="p-1 rounded-lg bg-white/20">
-              <Calendar className="h-4 w-4 text-white" />
-            </div>
-            <h3 className="text-xl font-bold">Total Transactions</h3>
-          </div>
-          <div>
-            <div className="text-xl font-bold ">{filteredPayments.length}</div>
-            <div className="mt-0.5 text-xs opacity-90">
-              Total Successful transactions
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Pending Transactions Card (Bottom Left Curve) */}
-        <motion.div
-          whileHover={{ y: -3 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-br-2xl p-2 pt-2 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-r from-amber-400 to-amber-500 text-white"
-        >
-          <div className="flex flex-col items-start justify-between  gap-2">
-            <div className="p-1 rounded-lg bg-white/20">
-              <CreditCard className="h-4 w-4 text-white" />
-            </div>
-            <h3 className="text-lg font-bold">Pending Transactions</h3>
-          </div>
-          <div>
-            <div className="text-xl font-bold ">
-              {filteredPayments.filter(p => p.status === "pending").length}
-            </div>
-            <div className="mt-0.5 text-xs opacity-90">
-              Total pending transactions
-            </div>
-          </div>
-        </motion.div>
+        
       </div>
+    )}
+    <div className="flex flex-col items-start justify-between gap-2">
+      <div className="p-1 rounded-lg bg-white/20">
+        <CreditCard className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xl font-bold">Paid Transactions</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold ">
+        {filteredPayments.filter(p => p.status === "paid").length}
+      </div>
+      <div className="mt-0.5 text-xs opacity-90">
+        Total Successful transactions
+      </div>
+    </div>
+  </motion.div>
+
+  {/* Total Transactions Card */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => {
+      setFilters({ ...filters, status: "All" });
+      setAppliedFilters({ ...appliedFilters, status: "All" });
+    }}
+    className="relative p-2 rounded-sm shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-r from-teal-500 to-teal-600 text-white cursor-pointer"
+  >
+    {/* Tick Indicator */}
+    {filters.status === "All" && (
+      <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
+          <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-full p-1">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between gap-2">
+      <div className="p-1 rounded-lg bg-white/20">
+        <Calendar className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xl font-bold">Total Transactions</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold ">{filteredPayments.length}</div>
+      <div className="mt-0.5 text-xs opacity-90">
+        Total Successful transactions
+      </div>
+    </div>
+  </motion.div>
+
+  {/* Pending Transactions Card (Bottom Left Curve) */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => {
+      if (filters.status === "pending") {
+        setFilters({ ...filters, status: "All" });
+        setAppliedFilters({ ...appliedFilters, status: "All" });
+      } else {
+        setFilters({ ...filters, status: "pending" });
+        setAppliedFilters({ ...appliedFilters, status: "pending" });
+      }
+    }}
+    className="relative rounded-br-2xl rounded-sm p-2 pt-2 shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-r from-amber-400 to-amber-500 text-white cursor-pointer"
+  >
+    {/* Tick Indicator */}
+    {filters.status === "pending" && (
+      <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
+          <div className="bg-amber-500 rounded-full p-1">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between gap-2">
+      <div className="p-1 rounded-lg bg-white/20">
+        <CreditCard className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-lg font-bold">Pending Transactions</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold ">
+        {filteredPayments.filter(p => p.status === "pending").length}
+      </div>
+      <div className="mt-0.5 text-xs opacity-90">
+        Total pending transactions
+      </div>
+    </div>
+  </motion.div>
+</div>
 
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-3">
@@ -536,79 +590,85 @@ export default function Payments() {
         <div className="overflow-y-auto">
           <div className="max-h-[300px] sm:max-h-[400px]" style={{ overflow: 'scroll' }}>
             <table className="w-full">
-              <thead className="bg-gray-50 sticky top-0 z-10">
+              <thead className="bg-gray-200 sticky top-0 z-10 py-3">
                 <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     SN.NO
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Transaction ID
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Customer
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Method
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Description
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {displayedPayments.map((payment, index) => (
-                  <tr
-                    key={payment.id}
-                    className="hover:bg-gray-50 transition-colors text-center"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm font-mono text-gray-900">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm font-mono text-gray-900">{payment.transactionId}</div>
-                      <div className="text-xs text-gray-500">ID: {payment.id}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm text-gray-900">{payment.customerName}</div>
-                      <div className="text-xs text-gray-500">ID: {payment.customerId}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm font-medium text-gray-900">
-                        {formatCurrency(payment.amount)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm text-gray-900">{payment.method}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex justify-center items-center min-w-[80px] sm:min-w-[100px] px-2 py-1 text-xs font-semibold rounded-lg ${getStatusColor(
-                          payment.status
-                        )}`}
-                      >
-                        {payment.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs sm:text-sm text-gray-500">
-                      {formatDate(payment.createdAt)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm text-gray-900">{payment.description}</div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+       <tbody className="bg-white divide-y divide-gray-200">
+      {displayedPayments.map((payment, index) => (
+        <tr
+          key={payment.id}
+          onClick={() => setSelectedRowId(payment.id)}
+          className={`cursor-pointer transition-all text-center 
+            ${
+              selectedRowId === payment.id
+                ? "bg-indigo-50 shadow-lg ring-1 ring-indigo-200 hover:bg-indigo-100 hover:shadow-xl"
+                : "hover:bg-gray-50 shadow-sm hover:shadow-md"
+            }`}
+        >
+          <td className="px-4 py-3">
+            <div className="text-xs sm:text-sm font-mono text-gray-900">
+              {(currentPage - 1) * itemsPerPage + index + 1}
+            </div>
+          </td>
+          <td className="px-4 py-3">
+            <div className="text-xs sm:text-sm font-mono text-gray-900">{payment.transactionId}</div>
+            <div className="text-xs text-gray-500">ID: {payment.id}</div>
+          </td>
+          <td className="px-4 py-3">
+            <div className="text-xs sm:text-sm text-gray-900">{payment.customerName}</div>
+            <div className="text-xs text-gray-500">ID: {payment.customerId}</div>
+          </td>
+          <td className="px-4 py-3">
+            <div className="text-xs sm:text-sm font-medium text-gray-900">
+              {formatCurrency(payment.amount)}
+            </div>
+          </td>
+          <td className="px-4 py-3">
+            <div className="text-xs sm:text-sm text-gray-900">{payment.method}</div>
+          </td>
+          <td className="px-4 py-3">
+            <span
+              className={`inline-flex justify-center items-center min-w-[80px] sm:min-w-[100px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
+                payment.status
+              )}`}
+            >
+              {payment.status}
+            </span>
+          </td>
+          <td className="px-4 py-3 text-xs sm:text-sm text-gray-500">
+            {formatDate(payment.createdAt)}
+          </td>
+          <td className="px-4 py-3">
+            <div className="text-xs sm:text-sm text-gray-900">{payment.description}</div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
             </table>
           </div>
         </div>

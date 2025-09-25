@@ -8,7 +8,7 @@ import {
   Plus,
   FileText,
   Clock,
-  CheckCircle,
+  Check,
   Eye,
   Edit,
   Users,
@@ -127,6 +127,12 @@ const Returns = () => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  const [selectedRowId, setSelectedRowId] = useState(null);
+
+  const handleRowClick = (id) => {
+    setSelectedRowId(id);
+  };
 
 
   const fetchReturns = useCallback(async () => {
@@ -913,134 +919,183 @@ const Returns = () => {
                 </Button>
               </div>
 
-              {/* Stats Cards - Responsive Grid */}
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {/* In Review Card */}
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
-                  className="rounded-tl-2xl p-3 shadow-md hover:shadow-lg transition-shadow 
-             bg-gradient-to-br from-emerald-400 to-green-500 text-white"
-                >
-                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
-                    <div className="p-1.5 rounded-lg bg-white/20">
-                      <FileText className="h-4 w-4 text-white" />
-                    </div>
-                    <h3 className="text-xs font-medium">In Review</h3>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold">{stats.inReview}</div>
-                    <div className="mt-0.5 text-xs opacity-90">
-                      {stats.total > 0 ? Math.round((stats.inReview / stats.total) * 100) : 0}% of total
-                    </div>
-                  </div>
-                </motion.div>
+             {/* Stats Cards - Responsive Grid */}
+{/* Stats Cards - Responsive Grid */}
+<div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+  {/* In Review Card */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => setStatusFilter(statusFilter === "in review" ? "all" : "in review")}
+    className="rounded-tl-2xl rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+             bg-gradient-to-br from-emerald-400 to-green-500 text-white relative cursor-pointer"
+  >
+    {statusFilter === "in review" && (
+      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
+        <div className="bg-gradient-to-br from-emerald-400 to-green-500 rounded-full p-1 shadow-lg">
+          <Check className="h-5 w-5 text-white" />
+        </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-white/20">
+        <FileText className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xs font-medium">In Review</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold">{stats.inReview}</div>
+      <div className="mt-0.5 text-xs opacity-90">
+        {stats.total > 0 ? Math.round((stats.inReview / stats.total) * 100) : 0}% of total
+      </div>
+    </div>
+  </motion.div>
 
-                {/* Initial Request Card */}
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
-                  className=" p-3 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-br from-amber-300 to-orange-400 text-white"
-                >
-                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
-                    <div className="p-1.5 rounded-lg bg-white/20">
-                      <Clock className="h-4 w-4 text-white" />
-                    </div>
-                    <h3 className="text-xs font-medium">Initial Request</h3>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold">{stats.initialRequest}</div>
-                    <div className="mt-0.5 text-xs opacity-90">
-                      {stats.total > 0 ? Math.round((stats.initialRequest / stats.total) * 100) : 0}% of total
-                    </div>
-                  </div>
-                </motion.div>
+  {/* Initial Request Card */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => setStatusFilter(statusFilter === "initial request" ? "all" : "initial request")}
+    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-br from-amber-300 to-orange-400 text-white relative cursor-pointer"
+  >
+    {statusFilter === "initial request" && (
+      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
+        <div className="bg-gradient-to-br from-amber-300 to-orange-400 rounded-full p-1 shadow-lg">
+          <Check className="h-5 w-5 text-white" />
+        </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-white/20">
+        <Clock className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xs font-medium">Initial Request</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold">{stats.initialRequest}</div>
+      <div className="mt-0.5 text-xs opacity-90">
+        {stats.total > 0 ? Math.round((stats.initialRequest / stats.total) * 100) : 0}% of total
+      </div>
+    </div>
+  </motion.div>
 
-                {/* Document Verified Card */}
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
-                  className=" p-3 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-br from-teal-400 to-emerald-500 text-white"
-                >
-                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
-                    <div className="p-1.5 rounded-lg bg-white/20">
-                      <FileCheck2 className="h-4 w-4 text-white" />
-                    </div>
-                    <h3 className="text-xs font-medium">Document Verified</h3>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold">{stats.documentVerified}</div>
-                    <div className="mt-0.5 text-xs opacity-90">
-                      {stats.total > 0 ? Math.round((stats.documentVerified / stats.total) * 100) : 0}% of total
-                    </div>
-                  </div>
-                </motion.div>
+  {/* Document Verified Card */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => setStatusFilter(statusFilter === "document verified" ? "all" : "document verified")}
+    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-br from-teal-400 to-emerald-500 text-white relative cursor-pointer"
+  >
+    {statusFilter === "document verified" && (
+      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
+        <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full p-1 shadow-lg">
+          <Check className="h-5 w-5 text-white" />
+        </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-white/20">
+        <FileCheck2 className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xs font-medium">Document Verified</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold">{stats.documentVerified}</div>
+      <div className="mt-0.5 text-xs opacity-90">
+        {stats.total > 0 ? Math.round((stats.documentVerified / stats.total) * 100) : 0}% of total
+      </div>
+    </div>
+  </motion.div>
 
-                {/* In Preparation Card */}
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
-                  className=" p-3 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-br from-violet-400 to-purple-500 text-white"
-                >
-                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
-                    <div className="p-1.5 rounded-lg bg-white/20">
-                      <FilePenLine className="h-4 w-4 text-white" />
-                    </div>
-                    <h3 className="text-xs font-medium">In Preparation</h3>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold">{stats.inPreparation}</div>
-                    <div className="mt-0.5 text-xs opacity-90">
-                      {stats.total > 0 ? Math.round((stats.inPreparation / stats.total) * 100) : 0}% of total
-                    </div>
-                  </div>
-                </motion.div>
+  {/* In Preparation Card */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => setStatusFilter(statusFilter === "in preparation" ? "all" : "in preparation")}
+    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-br from-violet-400 to-purple-500 text-white relative cursor-pointer"
+  >
+    {statusFilter === "in preparation" && (
+      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
+        <div className="bg-gradient-to-br from-violet-400 to-purple-500 rounded-full p-1 shadow-lg">
+          <Check className="h-5 w-5 text-white" />
+        </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-white/20">
+        <FilePenLine className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xs font-medium">In Preparation</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold">{stats.inPreparation}</div>
+      <div className="mt-0.5 text-xs opacity-90">
+        {stats.total > 0 ? Math.round((stats.inPreparation / stats.total) * 100) : 0}% of total
+      </div>
+    </div>
+  </motion.div>
 
-                {/* Ready to File Card */}
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
-                  className=" p-3 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-br from-slate-400 to-gray-500 text-white"
-                >
-                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
-                    <div className="p-1.5 rounded-lg bg-white/20">
-                      <FileUp className="h-4 w-4 text-white" />
-                    </div>
-                    <h3 className="text-xs font-medium">Ready to File</h3>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold">{stats.readyToFile}</div>
-                    <div className="mt-0.5 text-xs opacity-90">
-                      {stats.total > 0 ? Math.round((stats.readyToFile / stats.total) * 100) : 0}% of total
-                    </div>
-                  </div>
-                </motion.div>
+  {/* Ready to File Card */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => setStatusFilter(statusFilter === "ready to file" ? "all" : "ready to file")}
+    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-br from-slate-400 to-gray-500 text-white relative cursor-pointer"
+  >
+    {statusFilter === "ready to file" && (
+      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
+        <div className="bg-gradient-to-br from-slate-400 to-gray-500 rounded-full p-1 shadow-lg">
+          <Check className="h-5 w-5 text-white" />
+        </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-white/20">
+        <FileUp className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xs font-medium">Ready to File</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold">{stats.readyToFile}</div>
+      <div className="mt-0.5 text-xs opacity-90">
+        {stats.total > 0 ? Math.round((stats.readyToFile / stats.total) * 100) : 0}% of total
+      </div>
+    </div>
+  </motion.div>
 
-                {/* Filed Return Card */}
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
-                  className="rounded-br-2xl p-3 shadow-md hover:shadow-lg transition-shadow 
-               bg-gradient-to-br from-lime-400 to-green-500 text-white"
-                >
-                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
-                    <div className="p-1.5 rounded-lg bg-white/20">
-                      <CheckCircle className="h-4 w-4 text-white" />
-                    </div>
-                    <h3 className="text-xs font-medium">Filed Return</h3>
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold">{stats.filed}</div>
-                    <div className="mt-0.5 text-xs opacity-90">
-                      {stats.total > 0 ? Math.round((stats.filed / stats.total) * 100) : 0}% of total
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
+  {/* Filed Return Card */}
+  <motion.div
+    whileHover={{ y: -3 }}
+    transition={{ duration: 0.2 }}
+    onClick={() => setStatusFilter(statusFilter === "filed return" ? "all" : "filed return")}
+    className="rounded-br-2xl rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+               bg-gradient-to-br from-lime-400 to-green-500 text-white relative cursor-pointer"
+  >
+    {statusFilter === "filed return" && (
+      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
+        <div className="bg-gradient-to-br from-lime-400 to-green-500 rounded-full p-1 shadow-lg">
+          <Check className="h-5 w-5 text-white" />
+        </div>
+      </div>
+    )}
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-white/20">
+        <Check className="h-4 w-4 text-white" />
+      </div>
+      <h3 className="text-xs font-medium">Filed Return</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold">{stats.filed}</div>
+      <div className="mt-0.5 text-xs opacity-90">
+        {stats.total > 0 ? Math.round((stats.filed / stats.total) * 100) : 0}% of total
+      </div>
+    </div>
+  </motion.div>
+</div>
 
 
 
@@ -1219,88 +1274,74 @@ const Returns = () => {
 
               {/* Returns Table */}
               <div className="bg-white shadow  rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="">
                   <div className="max-h-[400px] overflow-y-auto">
                     <table className="min-w-full divide-y divide-gray-200 text-center">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-200 sticky top-0 rounded-md">
                         <tr>
-                          <th className="px-4 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          <th className="px-6 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                             SN.NO
                           </th>
-                          <th className="px-4 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">
+                          <th className="px-6 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">
                             Name
                           </th>
-                          <th className="px-4 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden md:table-cell">
+                          <th className="px-6 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden md:table-cell">
                             Documents
                           </th>
-                          <th className="px-4 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          <th className="px-6 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                             Type
                           </th>
-                          <th className="px-4 py-5 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          <th className="px-6 py-5 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                             Status
                           </th>
-                          <th className="px-4 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">
+                          <th className="px-6 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">
                             Last Updated
                           </th>
-                          <th className="px-4 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          <th className="px-6 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200 text-center">
-                        {currentItems.map((returnItem, index) => (
-                          <tr key={returnItem.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="  text-sm font-medium text-gray-900">
-                              {index + 1}
-                              {/* <div className="text-xs text-gray-500 sm:hidden">{returnItem.name}</div> */}
-                            </td>
-                            <td className="px-2 py-3 hidden sm:table-cell text-sm font-medium text-gray-900">
-                              {returnItem.name}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
-                              <div className="flex justify-center items-center">
-                                <FileText className="w-4 h-4 text-gray-400 mr-2" />
-                                <span className="text-sm text-gray-900">{returnItem.documentCount} files</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                              {returnItem.type}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <span
-                                className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-medium rounded-lg ${getStatusColor(
-                                  returnItem.status
-                                )}`}
-                              >
-                                {returnItem.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                              {formatDate(returnItem.lastUpdated)}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                              <div className="flex justify-center items-center space-x-2">
-                                <button
-                                  className="text-blue-600 hover:text-blue-700 transition-colors"
-                                  title="View Details"
-                                  onClick={() => setSelectedReturnId(returnItem.id)}
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                                <button className="md:hidden text-gray-600 hover:text-gray-700 transition-colors">
-                                  <MoreVertical className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
+                     <tbody className="bg-white divide-y divide-gray-200 text-center">
+        {currentItems.map((returnItem, index) => (
+          <tr
+            key={returnItem.id}
+            onClick={() => handleRowClick(returnItem.id)}
+            className={`transition-all cursor-pointer
+              ${selectedRowId === returnItem.id ? "bg-purple-100 shadow-lg" : "hover:shadow-md hover:bg-gray-50"}
+            `}
+          >
+            <td className="text-sm font-medium text-gray-900 px-4 py-3">{index + 1}</td>
+            <td className="px-2 py-3 hidden sm:table-cell text-sm font-medium text-gray-900">{returnItem.name}</td>
+            <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
+              <div className="flex justify-center items-center">
+                <FileText className="w-4 h-4 text-gray-400 mr-2" />
+                <span className="text-sm text-gray-900">{returnItem.documentCount} files</span>
+              </div>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{returnItem.type}</td>
+            <td className="px-4 py-3 whitespace-nowrap">
+              <span className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-medium rounded-lg ${getStatusColor(returnItem.status)}`}>
+                {returnItem.status}
+              </span>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">{formatDate(returnItem.lastUpdated)}</td>
+            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+              <div className="flex justify-center items-center space-x-2">
+                <button className="text-blue-600 hover:text-blue-700 transition-colors" title="View Details" onClick={() => setSelectedReturnId(returnItem.id)}>
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button className="md:hidden text-gray-600 hover:text-gray-700 transition-colors">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
                     </table>
-
-
-
                     {/* Pagination Controls */}
-                    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div className="bg-gray-200 rounded-md px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 sticky bottom-0 z-10">
                       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                         <div>
                           <p className="text-sm text-gray-700">
@@ -1310,42 +1351,63 @@ const Returns = () => {
                           </p>
                         </div>
                         <div>
-                          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                          <nav
+                            className="inline-flex border border-gray-300 rounded-md overflow-hidden"
+                            aria-label="Pagination"
+                          >
+                            {/* Previous Button */}
                             <button
-                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                               disabled={currentPage === 1}
-                              className={`relative px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
+                              className="flex items-center px-3 py-1 text-sm border-r border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              <span className="sr-only">Previous</span>
-                              {/* <ChevronLeft className="h-5 w-5" aria-hidden="true" /> */}
-                              Previous
+                              <ChevronLeft className="h-4 w-4 mr-1" />
+                              <span>Prev</span>
                             </button>
 
-                            {Array.from({ length: Math.ceil(filteredReturns.length / 10) }, (_, i) => i + 1).map(page => (
-                              <button
-                                key={page}
-                                onClick={() => setCurrentPage(page)}
-                                className={`relative px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed${currentPage === page
-                                  ? 'z-10 bg[#3F058F] border-[#3F058F] text-white'
-                                  : 'bg-[#3F058F] border-gray-300 text-gray-500 hover:bg-[#3F058F]'
-                                  }`}
-                              >
-                                {page}
-                              </button>
-                            ))}
+                            {/* Page Numbers */}
+                            {(() => {
+                              const totalPages = Math.ceil(filteredReturns.length / 10)
+                              const visiblePages = 5
+                              let startPage = Math.max(1, currentPage - 2)
+                              let endPage = Math.min(totalPages, startPage + visiblePages - 1)
 
+                              if (endPage - startPage < visiblePages - 1) {
+                                startPage = Math.max(1, endPage - visiblePages + 1)
+                              }
+
+                              return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(
+                                (page) => (
+                                  <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`px-3 py-1 text-sm border-r border-gray-300 ${currentPage === page
+                                        ? "bg-[#3F058F] text-white font-semibold"
+                                        : "bg-white text-gray-700 hover:bg-gray-100"
+                                      }`}
+                                  >
+                                    {page}
+                                  </button>
+                                )
+                              )
+                            })()}
+
+                            {/* Next Button */}
                             <button
-                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredReturns.length / 10)))}
+                              onClick={() =>
+                                setCurrentPage((prev) =>
+                                  Math.min(prev + 1, Math.ceil(filteredReturns.length / 10))
+                                )
+                              }
                               disabled={currentPage === Math.ceil(filteredReturns.length / 10)}
-                              className={`relative px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed ${currentPage === Math.ceil(filteredReturns.length / 10) ? '' : ''
-                                }`}
+                              className="flex items-center px-3 py-1 text-sm bg-white text-gray-700 hover:bg-gray-100"
                             >
-                              <span className="sr-only">Next</span>
-                              {/* <ChevronRight className="h-5 w-5" aria-hidden="true" /> */}
-                              Next
+                              <span>Next</span>
+                              <ChevronRight className="h-4 w-4 ml-1" />
                             </button>
                           </nav>
+
+
                         </div>
                       </div>
                     </div>

@@ -99,7 +99,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex h-8 w-8 p-0 text-white absolute top-0 right-0 hover:bg-white/20"
+            className="hidden lg:flex h-8 w-8 p-0 text-white absolute top-0 right-0 bg-[#FC6719] hover:bg-white"
           >
             {isCollapsed ? <ChevronRight className="w-7 h-7" /> : <ChevronLeft className="w-7 h-7" />}
           </Button>
@@ -124,32 +124,33 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
 
       return (
         <Link key={item.name} href={item.href}>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.02, x: 4 }}
-            whileTap={{ scale: 0.98 }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-              isActive
-                ? "bg-white/20 text-white shadow-md"
-                : "text-white hover:bg-white/10 hover:text-white"
-            }`}
-            onClick={() => {
-              if (window.innerWidth < 1024) {
-                setIsOpen(false)
-              }
-            }}
-          >
-            <Icon className={`${isCollapsed ? "w-6 h-6 mx-auto" : "w-5 h-5"}`} />
-            {!isCollapsed && (
-              <div className="flex-1">
-                <p className="font-semibold text-base">{item.name}</p>
-                <p className="text-xs text-white/30">{item.description}</p>
-              </div>
-            )}
-          </motion.div>
-        </Link>
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: index * 0.1 }}
+    whileHover={{ scale: 1.02, x: 4 }}
+    whileTap={{ scale: 0.98 }}
+    className={`flex items-center gap-2 px-4 py-2 my-4 rounded-xl transition-all duration-200 ${
+      isActive
+        ? "bg-[#FC6719] text-white shadow-md"
+        : "text-white hover:bg-white hover:text-[#8461B4]"
+    }`}
+    onClick={() => {
+      if (window.innerWidth < 1024) {
+        setIsOpen(false)
+      }
+    }}
+  >
+    <Icon className={`${isCollapsed ? "w-6 h-6 mx-auto" : "w-5 h-5"}`} />
+    {!isCollapsed && (
+      <div className="flex-1">
+        <p className="font-semibold text-base">{item.name}</p>
+        <p className="text-xs">{item.description}</p>
+      </div>
+    )}
+  </motion.div>
+</Link>
+
       )
     })}
   </nav>
@@ -161,7 +162,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
         variant="ghost"
         size="sm"
         onClick={handleLogout}
-        className="w-full flex justify-start text-white hover:bg-red-500/10"
+        className="w-full flex justify-start bg-[#FC6719] text-white hover:bg-white hover:text-[#8461B4] transition-colors duration-200"
       >
         <LogOut className="w-5 h-5 mr-2" />
         {!isCollapsed && "Sign Out"}
