@@ -1004,7 +1004,7 @@ export default function Invoices() {
   </div>
 
   {/* Pagination */}
-  <div className="flex justify-between items-center mt-4 p-4 border-t border-gray-200">
+  <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200">
     <p className="text-sm text-gray-600">
       Showing {indexOfFirstRow + 1} to{" "}
       {Math.min(indexOfLastRow, filteredInvoices.length)} of{" "}

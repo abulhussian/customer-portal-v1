@@ -685,7 +685,7 @@ export default function Payments() {
 
         {/* Pagination */}
        {filteredPayments.length > 0 && (
-  <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200">
+  <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t sticky bottom-0 border-gray-200">
     {/* Showing results */}
     <div className="text-xs sm:text-sm text-gray-700">
       Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
