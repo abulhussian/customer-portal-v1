@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Filter, RotateCcw, Calendar, X, Search, Clock } from 'lucide-react';
+import { CreditCard, Filter, RotateCcw, Calendar, X, Search, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BASE_URL } from '@/src/components/BaseUrl';
 import { motion } from "framer-motion"
 
@@ -684,47 +684,56 @@ export default function Payments() {
         )}
 
         {/* Pagination */}
-        {filteredPayments.length > 0 && (
-          <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200">
-            <div className="text-xs sm:text-sm text-gray-700">
-              Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-              <span className="font-medium">
-                {Math.min(currentPage * itemsPerPage, filteredPayments.length)}
-              </span>{' '}
-              of <span className="font-medium">{filteredPayments.length}</span> results
-            </div>
-            <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-2 py-1 text-xs sm:text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
+       {filteredPayments.length > 0 && (
+  <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200">
+    {/* Showing results */}
+    <div className="text-xs sm:text-sm text-gray-700">
+      Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+      <span className="font-medium">
+        {Math.min(currentPage * itemsPerPage, filteredPayments.length)}
+      </span>{" "}
+      of <span className="font-medium">{filteredPayments.length}</span> results
+    </div>
 
-              {pageNumbers.map(number => (
-                <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`px-2 py-1 text-xs sm:text-sm border rounded-md ${currentPage === number
-                      ? 'border-[#3F058F] bg-[#3F058F] text-white'
-                      : 'border-gray-300 hover:bg-gray-50'
-                    }`}
-                >
-                  {number}
-                </button>
-              ))}
+    {/* Pagination */}
+    <div className="flex items-center justify-center gap-1 sm:gap-2">
+      {/* Previous Button */}
+      <button
+        onClick={() => paginate(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        <span>Previous</span>
+      </button>
 
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === pageNumbers.length}
-                className="px-2 py-1 text-xs sm:text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+      {/* Page Numbers */}
+      {pageNumbers.map((number) => (
+        <button
+          key={number}
+          onClick={() => paginate(number)}
+          className={`px-3 py-1 text-xs sm:text-sm border rounded-md 
+            ${currentPage === number
+              ? "border-[#3F058F] bg-[#3F058F] text-white"
+              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+        >
+          {number}
+        </button>
+      ))}
+
+      {/* Next Button */}
+      <button
+        onClick={() => paginate(currentPage + 1)}
+        disabled={currentPage === pageNumbers.length}
+        className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        <span>Next</span>
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );

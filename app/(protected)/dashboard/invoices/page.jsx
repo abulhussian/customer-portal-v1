@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard, CheckCircle, Clock, AlertCircle, FileText, Search, Filter, Check } from "lucide-react"
+import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard, CheckCircle, Clock, AlertCircle, FileText, Search, Filter, Check, ChevronLeft, ChevronRight } from "lucide-react"
 import { BASE_URL } from "@/src/components/BaseUrl"
 import { pdf, Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
@@ -873,122 +873,187 @@ export default function Invoices() {
             </p>
           </div>
         ) : (
-          <div className="" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
-            <div className="max-h-[400px] " style={{ overflowY: 'auto' }}>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0 z-10">
-                  <tr>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      SN.NO
-                    </th>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      Customer
-                    </th>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      Return
-                    </th>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      Amount
-                    </th>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      Status
-                    </th>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      Created
-                    </th>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      Due Date
-                    </th>
-                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-         <tbody className="bg-white divide-y divide-gray-200">
-      {currentRows.map((invoice, index) => (
-        <motion.tr
-          key={invoice.id}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.05 }}
-          onClick={() => setSelectedRowId(invoice.id)}
-          className={`cursor-pointer transition-all duration-200 ${
-            selectedRowId === invoice.id
-              ? "bg-indigo-50 shadow-md" // ✅ clicked row stays highlighted
-              : "hover:bg-gray-50 hover:shadow-md" // ✅ hover also adds shadow
-          }`}
-        >
-          <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-            {index + 1}
-          </td>
-          <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-            <div className="text-sm text-gray-900">{invoice.customerName}</div>
-            <div className="text-xs text-gray-500">ID: {invoice.customerId}</div>
-          </td>
-          <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-            <div>
-              <div className="text-sm text-gray-900">{invoice.returnName}</div>
-              <div className="text-sm text-gray-500">{invoice.returnType}</div>
-            </div>
-          </td>
-          <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-            <div className="text-sm font-medium text-gray-900">
-              ${invoice.invoiceAmount.toFixed(2)} USD
-            </div>
-          </td>
-          <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-            <span
-              className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
-                invoice.status
-              )}`}
-            >
-              {invoice.status}
-            </span>
-          </td>
-          <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
-            {formatDate(invoice.createdAt)}
-          </td>
-          <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
-            {formatDate(invoice.dueDate)}
-          </td>
-          <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
-            <div className="flex items-center justify-center space-x-2">
-              {/* Your buttons here */}
-            </div>
-          </td>
-        </motion.tr>
-      ))}
-    </tbody>
-              </table>
-
-            </div>
-
-            <div className="flex justify-between items-center mt-4 p-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
-                Showing {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, filteredInvoices.length)} of {filteredInvoices.length} results
-              </p>
-
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className=" px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
-                  {currentPage}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  disabled={currentPage >= totalPages}
-                  className="px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+         <div
+  className=""
+  style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
+>
+  <div className="max-h-[400px]" style={{ overflowY: "auto" }}>
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50 sticky top-0 z-10">
+        <tr>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            SN.NO
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            Customer
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            Return
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            Amount
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            Status
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            Created
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            Due Date
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {currentRows.map((invoice, index) => (
+          <motion.tr
+            key={invoice.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+            onClick={() => setSelectedRowId(invoice.id)}
+            className={`cursor-pointer transition-all duration-200 ${
+              selectedRowId === invoice.id
+                ? "bg-indigo-50 shadow-md"
+                : "hover:bg-gray-50 hover:shadow-md"
+            }`}
+          >
+            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+              {index + 1}
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+              <div className="text-sm text-gray-900">{invoice.customerName}</div>
+              <div className="text-xs text-gray-500">
+                ID: {invoice.customerId}
               </div>
-            </div>
-          </div>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+              <div>
+                <div className="text-sm text-gray-900">{invoice.returnName}</div>
+                <div className="text-sm text-gray-500">{invoice.returnType}</div>
+              </div>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+              <div className="text-sm font-medium text-gray-900">
+                ${invoice.invoiceAmount.toFixed(2)} USD
+              </div>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+              <span
+                className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
+                  invoice.status
+                )}`}
+              >
+                {invoice.status}
+              </span>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+              {formatDate(invoice.createdAt)}
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+              {formatDate(invoice.dueDate)}
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+              <div className="flex items-center justify-center space-x-2">
+                <button
+                  onClick={() => handleViewInvoice(invoice)}
+                  className="text-blue-600 hover:text-blue-700 transition-colors"
+                  title="View Invoice"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDownloadInvoice(invoice)}
+                  disabled={isDownloading}
+                  className="text-green-600 hover:text-green-700 transition-colors disabled:opacity-50"
+                  title="Download Invoice"
+                >
+                  {isDownloading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                </button>
+                {invoice.status.toLowerCase() === "pending" ? (
+                  <button
+                    onClick={() => payNow(invoice)}
+                    disabled={isPaying && payingInvoiceId === invoice.id}
+                    className="text-purple-600 hover:text-purple-700 transition-colors disabled:opacity-50"
+                    title="Pay Invoice"
+                  >
+                    {isPaying && payingInvoiceId === invoice.id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                    ) : (
+                      <CreditCard className="w-4 h-4" />
+                    )}
+                  </button>
+                ) : (
+                  <div className="text-green-600" title="Payment Completed">
+                    <CheckCircle className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+            </td>
+          </motion.tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  {/* Pagination */}
+  <div className="flex justify-between items-center mt-4 p-4 border-t border-gray-200">
+    <p className="text-sm text-gray-600">
+      Showing {indexOfFirstRow + 1} to{" "}
+      {Math.min(indexOfLastRow, filteredInvoices.length)} of{" "}
+      {filteredInvoices.length} results
+    </p>
+
+    <div className="flex items-center space-x-2">
+      {/* Previous */}
+      <button
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+                   bg-white text-gray-700 hover:bg-gray-100 
+                   disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Previous
+      </button>
+
+      {/* Page numbers */}
+      {Array.from({ length: totalPages }, (_, i) => (
+        <button
+          key={i + 1}
+          onClick={() => setCurrentPage(i + 1)}
+          className={`px-3 py-1 text-sm border rounded-md transition-colors 
+            ${
+              currentPage === i + 1
+                ? "bg-[#3F058F] text-white border-[#3F058F]"
+                : "bg-white text-gray-700 hover:bg-gray-100"
+            }`}
+        >
+          {i + 1}
+        </button>
+      ))}
+
+      {/* Next */}
+      <button
+        onClick={() => setCurrentPage((prev) => prev + 1)}
+        disabled={currentPage >= totalPages}
+        className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+                   bg-white text-gray-700 hover:bg-gray-100 
+                   disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Next
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+</div>
         )}
       </motion.div>
     </div>
