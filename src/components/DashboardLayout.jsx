@@ -175,7 +175,7 @@
 
 import Sidebar from "./Sidebar"
 import Topbar from "./Topbar"
-import { useState, useEffect } from "react"
+import { useState, useEffect ,Children, cloneElement, isValidElement ,createContext, useContext} from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
@@ -197,10 +197,15 @@ import {
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 
+const FilterModalContext = createContext();
+export const useFilterModal = () => useContext(FilterModalContext);
+
 export default function DashboardLayout({ children, isOpen, setIsOpen, currentPath }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const { currentUser, logout } = useAuth()
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  
   const router = useRouter()
   const pathname = usePathname()
   
@@ -285,6 +290,7 @@ export default function DashboardLayout({ children, isOpen, setIsOpen, currentPa
   }
   
   return (
+
     <div className="flex h-screen bg-gray-50">
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden bg-white relative">
@@ -335,18 +341,39 @@ export default function DashboardLayout({ children, isOpen, setIsOpen, currentPa
 
           {/* Main Content Area with White Background */}
           <div className="z-10">
-            <div className="flex">
+            {/* <div className="flex">
               <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} currentPath={currentPath} />
               <div 
                 className="flex-1 z-2 w-full h-full pl-2 pt-0 pr-0 pb-0 bg-white z-11" 
                 style={{ borderTopLeftRadius: "50px" }}
               >
-                {children}
+                 <FilterModalContext.Provider value={{ isFilterModalOpen, setIsFilterModalOpen }}>
+      {children}
+    </FilterModalContext.Provider>
               </div>
-            </div>
+            </div> */}
+<div className="flex w-full h-full">
+  {/* Sidebar: blur when modal is open */}
+  <div className={`transition-all duration-300 ${isFilterModalOpen ? "blur-sm" : ""}`}>
+    <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} currentPath={currentPath} />
+  </div>
+
+  {/* Main content: do NOT blur */}
+  <div 
+    className="flex-1 z-2 w-full h-full pl-2 pt-0 pr-0 pb-0 bg-white z-11"
+    style={{ borderTopLeftRadius: "50px" }}
+  >
+    <FilterModalContext.Provider value={{ isFilterModalOpen, setIsFilterModalOpen }}>
+      {children}
+    </FilterModalContext.Provider>
+  </div>
+</div>
+
+
           </div>
         </main>
       </div>
     </div>
+     
   )
 }

@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { CreditCard, Filter, RotateCcw, Calendar, X, Search, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BASE_URL } from '@/src/components/BaseUrl';
 import { motion } from "framer-motion"
-
+import { useFilterModal } from '@/src/components/DashboardLayout';
 export default function Payments() {
+   const { isFilterModalOpen, setIsFilterModalOpen } = useFilterModal();
   const [payments, setPayments] = useState([]);
   const [filteredPayments, setFilteredPayments] = useState([]);
   const [displayedPayments, setDisplayedPayments] = useState([]);
@@ -18,7 +19,7 @@ export default function Payments() {
   const [processingRefund, setProcessingRefund] = useState({});
   const [error, setError] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
-  const [showFilterModal, setShowFilterModal] = useState(false);
+  // const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [appliedFilters, setAppliedFilters] = useState({
@@ -218,7 +219,7 @@ export default function Payments() {
 
   const handleFilterApply = () => {
     setAppliedFilters({ ...filters });
-    setShowFilterModal(false);
+    setIsFilterModalOpen(false);
     applyFilters();
   };
 
@@ -442,7 +443,7 @@ export default function Payments() {
           </div>
 
           <button
-            onClick={() => setShowFilterModal(true)}
+            onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
             className="flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
           >
             <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-1" />
@@ -524,7 +525,7 @@ export default function Payments() {
       </div>
 
       {/* Filter Modal */}
-      {showFilterModal && (
+      {isFilterModalOpen && (
         <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Filter Payments</h2>
@@ -575,7 +576,7 @@ export default function Payments() {
             </div>
 
             <button
-              onClick={() => setShowFilterModal(false)}
+              onClick={() => setIsFilterModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
             >
               <X className="w-5 h-5" />
@@ -626,8 +627,8 @@ export default function Payments() {
           className={`cursor-pointer transition-all text-center 
             ${
               selectedRowId === payment.id
-                ? "bg-indigo-50 shadow-lg ring-1 ring-indigo-200 hover:bg-indigo-100 hover:shadow-xl"
-                : "hover:bg-gray-50 shadow-sm hover:shadow-md"
+                ? "bg-indigo-50 shadow-lg  hover:bg-indigo-100 hover:shadow-xl"
+                : "hover:bg-gray-50 shadow-md hover:shadow-md"
             }`}
         >
           <td className="px-4 py-3">

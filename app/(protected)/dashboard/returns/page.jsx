@@ -37,6 +37,7 @@ import {
 } from "lucide-react"
 import ReturnForm from "@/src/components/ReturnForm"
 import { BASE_URL } from "@/src/components/BaseUrl"
+import { useFilterModal } from "@/src/components/DashboardLayout"
 
 // Helper components
 function formatDate(iso) {
@@ -69,6 +70,9 @@ function DocIcon({ type, className }) {
 }
 
 const Returns = () => {
+  const { isFilterModalOpen, setIsFilterModalOpen } = useFilterModal();
+
+  console.log("Filter modal state in Returns:", isFilterModalOpen, setIsFilterModalOpen);
   const getUserId = () => {
     try {
       const userString = localStorage.getItem("userProfile")
@@ -96,7 +100,6 @@ const Returns = () => {
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
-  const [showFilters, setShowFilters] = useState(false)
 
   // CustomerDetail state
   const [selectedReturnId, setSelectedReturnId] = useState(null)
@@ -263,6 +266,7 @@ const Returns = () => {
             }
           }).catch(() => ({ ok: false })),
         ])
+        console.log("Documents response:", documentsResponse)
 
         // Handle documents
         if (documentsResponse.ok) {
@@ -293,39 +297,49 @@ const Returns = () => {
     [allReturnsData],
   )
 
-  const downloadDocument = useCallback(async (doc) => {
-    try {
-      if (!doc.document_link) {
-        alert("Document link not available")
-        return
+ const downloadDocument = useCallback(async (doc) => {
+  try {
+    const downloadUrl = `http://192.168.1.5:3000/api/download-doc/${doc.id}`
+    const response = await fetch(downloadUrl, {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem('token')}`
       }
+    })
 
-      const cleanPath = doc.document_link.replace(/\\/g, "/")
-      const fileName = doc.doc_name || cleanPath.split("/").pop() || "document"
-      const downloadUrl = `${BASE_URL}/api/download?documentLink=${encodeURIComponent(doc.document_link)}`
+    if (!response.ok) throw new Error(`Download failed: ${response.status}`)
 
-      const response = await fetch(downloadUrl, {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      if (!response.ok) throw new Error(`Download failed: ${response.status}`)
-
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const link = window.document.createElement("a")
-      link.href = url
-      link.download = fileName
-      window.document.body.appendChild(link)
-      link.click()
-
-      window.document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error("Error downloading document:", error)
-      alert("Failed to download document. Please try again.")
+    // Get the filename from Content-Disposition header or use a default
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let fileName = 'document'
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i)
+      if (filenameMatch && filenameMatch[1]) {
+        fileName = filenameMatch[1]
+      }
+    } else {
+      // Fallback: use doc name or ID
+      fileName = doc.doc_name || `document_${doc.id}`
     }
-  }, [])
+
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const link = window.document.createElement("a")
+    link.href = url
+    link.download = fileName
+    link.style.display = "none"
+    
+    window.document.body.appendChild(link)
+    link.click()
+    
+    // Cleanup
+    window.document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error("Error downloading document:", error)
+    alert("Failed to download document. Please try again.")
+  }
+}, [])
 
   // Initial data loading
   useEffect(() => {
@@ -1101,176 +1115,200 @@ const Returns = () => {
 
               {/* Search and Filter Bar */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 pl-2">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Search returns by ID, type, status, or name..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+  <div className="flex flex-col md:flex-row gap-4">
+    <div className="relative flex-1">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+      <input
+        type="text"
+        placeholder="Search returns by ID, type, status, or name..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
 
-                  <div className="flex flex-col md:flex-row gap-2">
-                    <button
-                      onClick={() => setShowFilters(!showFilters)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors relative"
-                    >
-                      <Filter className="h-4 w-4" />
-                      <span className="hidden sm:inline">Filters</span>
-                      {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
-                        <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {[statusFilter, typeFilter, dateFilter].filter(filter => filter !== "all").length}
-                        </span>
-                      )}
-                      {/* <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} /> */}
-                    </button>
+    <div className="flex flex-col md:flex-row gap-2">
+      <button
+  onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors relative"
+>
+  <Filter className="h-4 w-4" />
+  <span className="hidden sm:inline">Filters</span>
+  {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
+    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+      {[statusFilter, typeFilter, dateFilter].filter(filter => filter !== "all").length}
+    </span>
+  )}
+</button>
 
+    </div>
+  </div>
 
-                  </div>
-                </div>
+  {/* Applied Filters */}
+  {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
+    <div className="mt-1 flex flex-wrap gap-4 items-center">
+      <div className="pr-1 border-r-2 pl-2">
+        <h1 className="text-gray-700 font-bold">Applied Filters</h1>
+        {(searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
+          <button
+            onClick={() => {
+              setSearchTerm("")
+              setStatusFilter("all")
+              setTypeFilter("all")
+              setDateFilter("all")
+            }}
+            className="text-sm text-orange-600 hover:text-orange-700 transition-colors"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+      {statusFilter !== "all" && (
+        <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
+          {statusFilter}
+          <button
+            onClick={() => setStatusFilter("all")}
+            className="ml-2 text-blue-600 hover:text-blue-800"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
 
-                {/* Applied Filters */}
-                {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
-                  <div className="mt-1 flex flex-wrap gap-4  items-center">
-                    <div className="pr-1 border-r-2 pl-2">
-                      <h1 className="text-gray-700 font-bold">Applied Filters</h1>
-                      {(searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
-                        <button
-                          onClick={() => {
-                            setSearchTerm("")
-                            setStatusFilter("all")
-                            setTypeFilter("all")
-                            setDateFilter("all")
-                          }}
-                          className="  text-sm text-orange-600 hover:text-orange-700 transition-colors"
-                        >
-                          Clear all
-                        </button>
-                      )}
-                    </div>
-                    {statusFilter !== "all" && (
-                      <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
-                        {statusFilter}
-                        <button
-                          onClick={() => setStatusFilter("all")}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
+      {typeFilter !== "all" && (
+        <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
+          Type: {typeFilter}
+          <button
+            onClick={() => setTypeFilter("all")}
+            className="ml-2 text-blue-600 hover:text-blue-800"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
 
-                    )}
+      {dateFilter !== "all" && (
+        <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
+          Date: {dateFilter}
+          <button
+            onClick={() => setDateFilter("all")}
+            className="ml-2 text-blue-600 hover:text-blue-800"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
-                    {typeFilter !== "all" && (
-                      <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
-                        Type: {typeFilter}
-                        <button
-                          onClick={() => setTypeFilter("all")}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
+{/* Filters Popup Modal */}
+{isFilterModalOpen && (
+  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20 flex justify-center p- box-shadow-lg">
+    <div
+  className={`fixed inset-0 flex items-center justify-center z-50 ${
+    isFilterModalOpen ? "visible" : "invisible"
+  }`}
+>
+  {/* Background overlay */}
+  <div
+    className="absolute inset-0 bg-black opacity-30"
+    onClick={() => setIsFilterModalOpen(false)}
+  ></div>
 
-                    {dateFilter !== "all" && (
-                      <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
-                        Date: {dateFilter}
-                        <button
-                          onClick={() => setDateFilter("all")}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+  {/* Modal content */}
+  <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-2 overflow-y-auto">
+    <div className="flex justify-between items-center p-6 pb-0">
+      <h3 className="text-lg font-medium text-gray-900">Filters</h3>
+      <button
+        onClick={() => setIsFilterModalOpen(false)}
+        className="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <X className="h-6 w-6" />
+      </button>
+    </div>
 
-                {/* Filters Modal */}
-                {showFilters && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4  bg-opacity-50 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Filters</h3>
-                        <button
-                          onClick={() => setShowFilters(false)}
-                          className="text-gray-400 hover:text-gray-600"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
-                      </div>
+    <div className="space-y-4 p-6">
+      {/* Status Filter */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Status
+        </label>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">All Statuses</option>
+          {statusOptions.filter((opt) => opt !== "all").map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                          <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="all">All Statuses</option>
-                            {statusOptions.filter(opt => opt !== "all").map((status) => (
-                              <option key={status} value={status}>{status}</option>
-                            ))}
-                          </select>
-                        </div>
+      {/* Type Filter */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Type
+        </label>
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">All Types</option>
+          {typeOptions.filter((opt) => opt !== "all").map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+      </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                          <select
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="all">All Types</option>
-                            {typeOptions.filter(opt => opt !== "all").map((type) => (
-                              <option key={type} value={type}>{type}</option>
-                            ))}
-                          </select>
-                        </div>
+      {/* Date Filter */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Date
+        </label>
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">All Dates</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+        </select>
+      </div>
+    </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                          <select
-                            value={dateFilter}
-                            onChange={(e) => setDateFilter(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="all">All Dates</option>
-                            <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                          </select>
-                        </div>
-                      </div>
+    {/* Buttons */}
+    <div className="flex justify-end space-x-3 p-6 pt-0">
+      <button
+        onClick={() => {
+          setStatusFilter("all");
+          setTypeFilter("all");
+          setDateFilter("all");
+        }}
+        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+      >
+        Clear all
+      </button>
+      <button
+        onClick={() => setIsFilterModalOpen(false)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+      >
+        Apply Filters
+      </button>
+    </div>
+  </div>
+</div>
 
-                      <div className="mt-6 flex justify-end space-x-3">
-                        <button
-                          onClick={() => {
-                            setSearchTerm("")
-                            setStatusFilter("all")
-                            setTypeFilter("all")
-                            setDateFilter("all")
-                          }}
-                          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                        >
-                          Clear all
-                        </button>
-                        <button
-                          onClick={() => setShowFilters(false)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          Apply Filters
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+  </div>
+)}
 
               {/* Returns Table */}
               <div className="bg-white shadow  rounded-lg overflow-hidden">

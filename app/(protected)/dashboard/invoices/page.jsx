@@ -7,7 +7,7 @@ import { BASE_URL } from "@/src/components/BaseUrl"
 import { pdf, Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import * as numberToWords from 'number-to-words';
-
+import { useFilterModal } from "@/src/components/DashboardLayout"
 // Register fonts if needed (optional)
 Font.register({
   family: 'Helvetica',
@@ -250,6 +250,8 @@ const InvoiceDocument = ({ invoice }) => (
 );
 
 export default function Invoices() {
+    const { isFilterModalOpen, setIsFilterModalOpen } = useFilterModal();
+  
   const [invoices, setInvoices] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -261,7 +263,7 @@ export default function Invoices() {
   const [payingInvoiceId, setPayingInvoiceId] = useState(null)
   const [viewInvoice, setViewInvoice] = useState(null)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  // const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10; // ✅ default 10 rows
   const [selectedRowId, setSelectedRowId] = useState(null)
@@ -755,7 +757,7 @@ export default function Invoices() {
               {/* Filter Button */}
               <div className="px-4 py-3 bg-gray-200 p-1 rounded-md">
                 <button
-                  onClick={() => setIsFilterModalOpen(true)}
+                  onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
                   className="flex items-center justify-center gap-1 text-black hover:text-gray-600"
                 >
                   <Filter className="w-4 h-4" />
@@ -917,7 +919,7 @@ export default function Invoices() {
             onClick={() => setSelectedRowId(invoice.id)}
             className={`cursor-pointer transition-all duration-200 ${
               selectedRowId === invoice.id
-                ? "bg-indigo-50 shadow-md"
+                ? "bg-indigo-50 shadow-lg"
                 : "hover:bg-gray-50 hover:shadow-md"
             }`}
           >
