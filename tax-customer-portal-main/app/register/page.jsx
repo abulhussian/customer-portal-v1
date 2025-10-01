@@ -218,7 +218,7 @@ const Register = () => {
               <img src="/favicon.svg" alt="logo" />
             </motion.div>
             <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
-            <p className="text-gray-600 mt-1">Join our business management platform</p>
+            {/* <p className="text-gray-600 mt-1">Join our business management platform</p> */}
           </div>
 
           <div className="space-y-6 px-6 pb-6">

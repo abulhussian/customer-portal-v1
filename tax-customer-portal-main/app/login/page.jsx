@@ -261,7 +261,7 @@ const Login = () => {
               />
             </motion.div>
             <CardTitle className="text-2xl font-bold text-gray-900">Welcome Back</CardTitle>
-            <CardDescription className="text-gray-600">Sign in to your Invertio business account</CardDescription>
+            <CardDescription className="text-gray-600">Sign in your account</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">

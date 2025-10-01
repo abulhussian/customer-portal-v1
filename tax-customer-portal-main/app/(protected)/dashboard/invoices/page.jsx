@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard, CheckCircle, Clock, AlertCircle, FileText, Search, Filter } from "lucide-react"
+import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard, CheckCircle, Clock, AlertCircle, FileText, Search, Filter, Check, ChevronLeft, ChevronRight } from "lucide-react"
 import { BASE_URL } from "@/src/components/BaseUrl"
 import { pdf, Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import * as numberToWords from 'number-to-words';
+import { useFilterModal } from "@/src/components/DashboardLayout"
+import React from "react";
 
 // Register fonts if needed (optional)
 Font.register({
@@ -250,6 +252,8 @@ const InvoiceDocument = ({ invoice }) => (
 );
 
 export default function Invoices() {
+  const { isFilterModalOpen, setIsFilterModalOpen } = useFilterModal();
+
   const [invoices, setInvoices] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -261,9 +265,11 @@ export default function Invoices() {
   const [payingInvoiceId, setPayingInvoiceId] = useState(null)
   const [viewInvoice, setViewInvoice] = useState(null)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  // const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5; // ✅ default 10 rows
+  const rowsPerPage = 10; // ✅ default 10 rows
+  const [selectedRowId, setSelectedRowId] = useState(null)
+
 
   // Calculate pagination values
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -356,6 +362,8 @@ export default function Invoices() {
         (invoice) =>
           invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           invoice.returnName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.returnType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
           invoice.id.toString().includes(searchTerm)
       )
     }
@@ -514,17 +522,18 @@ export default function Invoices() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-3  h-screen max-w-full overflow-y-auto flex flex-col">
+      <div className="">
       {/* View Invoice Modal */}
       {viewInvoice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50 p-4">
+        <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto relative">
             <button
               onClick={() => setViewInvoice(null)}
@@ -621,13 +630,7 @@ export default function Invoices() {
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-4 mt-6">
-                <button
-                  onClick={() => handleDownloadInvoice(viewInvoice)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? 'Generating PDF...' : 'Download PDF'}
-                </button>
+
                 <button
                   onClick={() => setViewInvoice(null)}
                   className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
@@ -639,83 +642,13 @@ export default function Invoices() {
           </div>
         </div>
       )}
-
-      {/* <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Invoices</h1>
-            <p className="text-gray-600">View and manage all your tax service invoices</p>
-          </div>
-        </div>
-      </motion.div> */}
-
-      {/* Statistics */}
-      {/* {filteredInvoices.length > 0 && (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.3 }}
-    className="mt-6"
-  >
-    <h3 className="text-lg font-semibold text-gray-800 mb-4">Invoice Summary</h3>
-    <div className="grid grid-cols-1 md:grid-cols-6 gap-5">
-      {statusOptions.slice(1).map((status) => {
-        const count = invoices.filter((a) => a.status === status.value).length;
-        const total = invoices
-          .filter((a) => a.status === status.value)
-          .reduce((sum, invoice) => sum + invoice.invoiceAmount, 0);
-        
-        // Define icons based on status
-        const statusIcons = {
-          paid: <CheckCircle className="h-5 w-5 text-green-500" />,
-          pending: <Clock className="h-5 w-5 text-amber-500" />,
-          overdue: <AlertCircle className="h-5 w-5 text-red-500" />,
-          draft: <FileText className="h-5 w-5 text-blue-500" />
-        };
-        
-        const IconComponent = statusIcons[status.value] || <FileText className="h-5 w-5 text-gray-500" />;
-        
-        return (
-          <motion.div 
-            key={status.value}
-            whileHover={{ y: -4, scale: 1.02 }}
-            transition={{ duration: 0.2 }}
-            className="rounded-xl p-5 bg-gradient-to-r from-amber-400 to-amber-500 text-white shadow-md hover:shadow-lg border border-gray-100 transition-all"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 rounded-lg bg-gray-100">
-                {IconComponent}
-              </div>
-              <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
-                {count} {count === 1 ? 'invoice' : 'invoices'}
-              </span>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">{status.label}</h3>
-              <div className="text-2xl font-bold text-gray-800">${total.toFixed(2)}</div>
-              <div className="text-xs text-gray-500 mt-1">USD</div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-gray-100">
-              <div className="text-xs text-gray-500">
-                {invoices.length > 0 ? Math.round((count / invoices.length) * 100) : 0}% of all invoices
-              </div>
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  </motion.div>
-)} */}
       {filteredInvoices.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className=""
+          className="mt-4"
         >
-          {/* <h3 className="text-lg font-semibold text-gray-800 mb-2">Invoice Summary</h3> */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             {statusOptions.slice(1).map((status, index, arr) => {
               const count = invoices.filter((a) => a.status === status.value).length;
@@ -731,17 +664,39 @@ export default function Invoices() {
               };
 
               const statusGradients = {
-                Paid: "bg-gradient-to-r from-green-400 to-green-500",
-                Pending: "bg-gradient-to-r from-amber-400 to-amber-500",
-                Overdue: "bg-gradient-to-r from-red-400 to-red-500",
-                Draft: "bg-gradient-to-r from-blue-400 to-blue-500"
+                Paid: {
+                  gradient: "bg-gradient-to-r from-green-400 to-green-500",
+                  from: "green",
+                  to: "green"
+                },
+                Pending: {
+                  gradient: "bg-gradient-to-r from-amber-400 to-amber-500",
+                  from: "amber",
+                  to: "amber"
+                },
+                Overdue: {
+                  gradient: "bg-gradient-to-r from-red-400 to-red-500",
+                  from: "red",
+                  to: "red"
+                },
+                Draft: {
+                  gradient: "bg-gradient-to-r from-blue-400 to-blue-500",
+                  from: "blue",
+                  to: "blue"
+                }
               };
 
               const IconComponent =
-                statusIcons[status.value] || <FileText className="h-5 w-5 text-gray-500" />;
-              const gradientClass =
-                statusGradients[status.value] ||
-                "bg-gradient-to-r from-gray-400 to-gray-500";
+                statusIcons[status.value] || (
+                  <FileText className="h-5 w-5 text-white" />
+                );
+
+              const gradientInfo =
+                statusGradients[status.value] || {
+                  gradient: "bg-gradient-to-r from-gray-400 to-gray-500",
+                  from: "gray",
+                  to: "gray"
+                };
 
               // Conditional radius
               const extraRadius =
@@ -756,40 +711,45 @@ export default function Invoices() {
                   key={status.value}
                   whileHover={{ y: -4, scale: 1.02 }}
                   transition={{ duration: 0.2 }}
-                  className={`p-2 ${gradientClass} text-white shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all ${extraRadius}`}
+                  onClick={() =>
+                    setFilterStatus(status.value === filterStatus ? "all" : status.value)
+                  }
+                  className={`p-2 ${gradientInfo.gradient} text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all ${extraRadius} relative cursor-pointer`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="p-1 rounded-lg bg-white bg-opacity-20">
-                      {IconComponent}
+                  {/* Checkmark indicator */}
+                  {filterStatus === status.value && (
+                    <div className="absolute -top-4 -right-2">
+                      <div className={`${gradientInfo.gradient} rounded-full p-1 shadow-lg flex items-center justify-center`}>
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
                     </div>
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-white bg-opacity-20 text-black">
-                      {count} {count === 1 ? "invoice" : "invoices"}
-                    </span>
-                  </div>
+                  )}
 
-                  <div>
+                  <div className="flex items-center gap-5 mb-1 w-full">
+                    {/* Gradient Border + Icon */}
+                    <div className={`flex items-center justify-center w-1/6 border-b-2 pb-2 border-${gradientInfo.from}-600`}>
+                      <div className={`p-2 rounded-full bg-gradient-to-r from-${gradientInfo.from}-600 to-${gradientInfo.to}-600 flex items-center justify-center`}>
+                        {React.cloneElement(IconComponent, { className: "h-5 w-5 text-white" })}
+                      </div>
+                    </div>
+
                     <h3 className="text-sm font-medium text-white mb-1">
                       {status.label}
                     </h3>
-                    <div className="text-lg font-bold text-white">
+                  </div>
+
+                  <div>
+                    <div className="text-lg font-bold text-white pl-2 mt-2">
                       ${total.toFixed(2)}
                     </div>
                   </div>
-
-                  <div className="mt-1 pt-1  border-white border-opacity-20">
-                    <div className="text-xs text-white text-opacity-80">
-                      {invoices.length > 0
-                        ? Math.round((count / invoices.length) * 100)
-                        : 0}
-                      % of all invoices
-                    </div>
-                  </div>
                 </motion.div>
+
               );
             })}
           </div>
-
         </motion.div>
+
       )}
       {/* Filters */}
       <motion.div
@@ -817,7 +777,7 @@ export default function Invoices() {
               {/* Filter Button */}
               <div className="px-4 py-3 bg-gray-200 p-1 rounded-md">
                 <button
-                  onClick={() => setIsFilterModalOpen(true)}
+                  onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
                   className="flex items-center justify-center gap-1 text-black hover:text-gray-600"
                 >
                   <Filter className="w-4 h-4" />
@@ -849,7 +809,7 @@ export default function Invoices() {
                     onClick={() => setFilterStatus('')}
                     className="ml-2 text-blue-600 hover:text-blue-800"
                   >
-                    <X className="w-3 h-3" />
+                    {/* <X className="w-3 h-3" /> */}
                   </button>
                 </div>
               )}
@@ -935,155 +895,188 @@ export default function Invoices() {
             </p>
           </div>
         ) : (
-         <div className="overflow-x-auto " style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
-  <div className="max-h-[300px] " style={{ overflow: 'scroll' }}>
-    <table className="min-w-full divide-y divide-gray-20 ">
-      <thead className="bg-gray-50 sticky top-0 z-10">
-        <tr>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Invoice
-          </th>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Customer
-          </th>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Return
-          </th>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Amount
-          </th>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Status
-          </th>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Created
-          </th>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Due Date
-          </th>
-          <th className="px-6 py-5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
-        {currentRows.map((invoice, index) => (
-          <motion.tr
-            key={invoice.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="hover:bg-gray-50 transition-colors"
+          <div
+            className=""
+            style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
           >
-            <td className="px-4 py-3 whitespace-nowrap align-middle">
-              <div className="flex items-center">
-                <Receipt className="w-4 h-4 text-gray-400 mr-2" />
-                <span className="text-sm font-medium text-gray-900">{invoice.id}</span>
-              </div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap align-middle">
-              <div className="text-sm text-gray-900">{invoice.customerName}</div>
-              <div className="text-xs text-gray-500">ID: {invoice.customerId}</div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap align-middle">
-              <div>
-                <div className="text-sm text-gray-900">{invoice.returnName}</div>
-                <div className="text-sm text-gray-500">{invoice.returnType}</div>
-              </div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap align-middle">
-              <div className="text-sm font-medium text-gray-900">
-                ${invoice.invoiceAmount.toFixed(2)} USD
-              </div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap align-middle">
-              <span
-                className={`inline-flex justify-center items-center min-w-[120px] px-4 py-1 text-xs font-semibold rounded-lg ${getStatusColor(invoice.status)}`}
-              >
-                {invoice.status}
-              </span>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 align-middle">
-              {formatDate(invoice.createdAt)}
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 align-middle">
-              {formatDate(invoice.dueDate)}
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 align-middle">
+            <div className="max-h-[400px]" style={{ overflowY: "auto" }}>
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      SN.NO
+                    </th>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      Customer
+                    </th>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      Return
+                    </th>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      Amount
+                    </th>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      Status
+                    </th>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      Created
+                    </th>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      Due Date
+                    </th>
+                    <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentRows.map((invoice, index) => (
+                    <motion.tr
+                      key={invoice.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => setSelectedRowId(invoice.id)}
+                      className={`cursor-pointer transition-all duration-200 ${selectedRowId === invoice.id
+                        ? "bg-indigo-50 shadow-lg"
+                        : "hover:bg-gray-50 hover:shadow-md"
+                        }`}
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                        <div className="text-sm text-gray-900">{invoice.customerName}</div>
+                        <div className="text-xs text-gray-500">
+                          ID: {invoice.customerId}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                        <div>
+                          <div className="text-sm text-gray-900">{invoice.returnName}</div>
+                          <div className="text-sm text-gray-500">{invoice.returnType}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                        <div className="text-sm font-medium text-gray-900">
+                          ${invoice.invoiceAmount.toFixed(2)} USD
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                        <span
+                          className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
+                            invoice.status
+                          )}`}
+                        >
+                          {invoice.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+                        {formatDate(invoice.createdAt)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+                        {formatDate(invoice.dueDate)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+                        <div className="flex items-center justify-center space-x-2">
+                          <button
+                            onClick={() => handleViewInvoice(invoice)}
+                            className="text-blue-600 hover:text-blue-700 transition-colors"
+                            title="View Invoice"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownloadInvoice(invoice)}
+                            disabled={isDownloading}
+                            className="text-green-600 hover:text-green-700 transition-colors disabled:opacity-50"
+                            title="Download Invoice"
+                          >
+                            {isDownloading ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
+                          </button>
+                          {invoice.status.toLowerCase() === "pending" ? (
+                            <button
+                              onClick={() => payNow(invoice)}
+                              disabled={isPaying && payingInvoiceId === invoice.id}
+                              className="text-purple-600 hover:text-purple-700 transition-colors disabled:opacity-50"
+                              title="Pay Invoice"
+                            >
+                              {isPaying && payingInvoiceId === invoice.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                              ) : (
+                                <CreditCard className="w-4 h-4" />
+                              )}
+                            </button>
+                          ) : (
+                            <div className="text-green-600" title="Payment Completed">
+                              <CheckCircle className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                Showing {indexOfFirstRow + 1} to{" "}
+                {Math.min(indexOfLastRow, filteredInvoices.length)} of{" "}
+                {filteredInvoices.length} results
+              </p>
+
               <div className="flex items-center space-x-2">
+                {/* Previous */}
                 <button
-                  onClick={() => handleViewInvoice(invoice)}
-                  className="text-blue-600 hover:text-blue-700 transition-colors"
-                  title="View Invoice"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+                   bg-white text-gray-700 hover:bg-gray-100 
+                   disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Eye className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
                 </button>
-                <button
-                  onClick={() => handleDownloadInvoice(invoice)}
-                  disabled={isDownloading}
-                  className="text-green-600 hover:text-green-700 transition-colors disabled:opacity-50"
-                  title="Download Invoice"
-                >
-                  {isDownloading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                </button>
-                {invoice.status.toLowerCase() === "pending" ? (
+
+                {/* Page numbers */}
+                {Array.from({ length: totalPages }, (_, i) => (
                   <button
-                    onClick={() => payNow(invoice)}
-                    disabled={isPaying && payingInvoiceId === invoice.id}
-                    className="text-purple-600 hover:text-purple-700 transition-colors disabled:opacity-50"
-                    title="Pay Invoice"
+                    key={i + 1}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 text-sm border rounded-md transition-colors 
+            ${currentPage === i + 1
+                        ? "bg-[#3F058F] text-white border-[#3F058F]"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
+                      }`}
                   >
-                    {isPaying && payingInvoiceId === invoice.id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                    ) : (
-                      <CreditCard className="w-4 h-4" />
-                    )}
+                    {i + 1}
                   </button>
-                ) : (
-                  <div className="text-green-600" title="Payment Completed">
-                    <CheckCircle className="w-4 h-4" />
-                  </div>
-                )}
+                ))}
+
+                {/* Next */}
+                <button
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  disabled={currentPage >= totalPages}
+                  className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+                   bg-white text-gray-700 hover:bg-gray-100 
+                   disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            </td>
-          </motion.tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-
-  <div className="flex justify-between items-center mt-4 p-4 border-t border-gray-200">
-    <p className="text-sm text-gray-600">
-      Showing {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, filteredInvoices.length)} of {filteredInvoices.length} results
-    </p>
-
-    <div className="flex space-x-2">
-      <button
-        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-        className="px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Previous
-      </button>
-      <span className=" px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
-        {currentPage}
-      </span>
-      <button
-        onClick={() => setCurrentPage(prev => prev + 1)}
-        disabled={currentPage >= totalPages}
-        className="px-3 py-1 text-sm bg-[#3F058F] text-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Next
-      </button>
-    </div>
-  </div>
-</div>
+            </div>
+          </div>
         )}
-          </motion.div>
+      </motion.div>
+    </div>
     </div>
   )
 }

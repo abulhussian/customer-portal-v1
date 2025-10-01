@@ -9,6 +9,7 @@ import DashboardLayout from "../../../src/components/DashboardLayout.jsx"
 export default function DashboardRootLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const currentPath = usePathname()
+  
 
   return (
     <DashboardLayout 
