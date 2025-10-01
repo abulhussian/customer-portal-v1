@@ -290,7 +290,7 @@ export default function Payments() {
   }
 
   return (
-    <div className="space-y-3 h-screen p-2 sm:p-4">
+    <div className="space-y-3 h-screen overflow-y-auto p-2 sm:p-4">
       <div className="flex items-center justify-between">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
@@ -334,18 +334,17 @@ export default function Payments() {
         
       </div>
     )}
-    <div className="flex flex-col items-start justify-between gap-2">
-      <div className="p-1 rounded-lg bg-white/20">
+    <div className="flex  items-start  gap-2">
+            <div className="w-1/6 border-b-2 pb-2 border-emerald-700 ">
+      <div className="p-1 flex justify-center items-center rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700/20">
         <CreditCard className="h-4 w-4 text-white" />
       </div>
-      <h3 className="text-xl font-bold">Paid Transactions</h3>
+      </div>
+      <h3 className="text-sm font-bold  ">Paid Transactions</h3>
     </div>
     <div>
-      <div className="text-xl font-bold ">
+      <div className="text-xl font-bold mt-2 pl-2 ">
         {filteredPayments.filter(p => p.status === "paid").length}
-      </div>
-      <div className="mt-0.5 text-xs opacity-90">
-        Total Successful transactions
       </div>
     </div>
   </motion.div>
@@ -371,17 +370,16 @@ export default function Payments() {
           </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between gap-2">
-      <div className="p-1 rounded-lg bg-white/20">
+    <div className="flex  items-start  gap-2">
+      <div className="w-1/6 border-b-2 pb-2 border-emerald-700 ">
+      <div className="p-1 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-600 to-teal-700/20">
         <Calendar className="h-4 w-4 text-white" />
       </div>
-      <h3 className="text-xl font-bold">Total Transactions</h3>
+      </div>
+      <h3 className="text-sm font-bold">Total Transactions</h3>
     </div>
     <div>
-      <div className="text-xl font-bold ">{filteredPayments.length}</div>
-      <div className="mt-0.5 text-xs opacity-90">
-        Total Successful transactions
-      </div>
+      <div className="text-xl font-bold mt-2 ">{filteredPayments.length}</div>
     </div>
   </motion.div>
 
@@ -411,18 +409,17 @@ export default function Payments() {
           </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between gap-2">
-      <div className="p-1 rounded-lg bg-white/20">
+    <div className="flex  items-start  gap-2">
+      <div className="w-1/6 border-b-2 pb-2 border-amber-500 ">
+      <div className="p-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600/20 flex justify-center items-center">
         <CreditCard className="h-4 w-4 text-white" />
       </div>
-      <h3 className="text-lg font-bold">Pending Transactions</h3>
+      </div>
+      <h3 className="text-sm font-bold">Pending Transactions</h3>
     </div>
     <div>
-      <div className="text-xl font-bold ">
+      <div className="text-xl font-bold pl-2 ">
         {filteredPayments.filter(p => p.status === "pending").length}
-      </div>
-      <div className="mt-0.5 text-xs opacity-90">
-        Total pending transactions
       </div>
     </div>
   </motion.div>
@@ -628,7 +625,7 @@ export default function Payments() {
             ${
               selectedRowId === payment.id
                 ? "bg-indigo-50 shadow-lg  hover:bg-indigo-100 hover:shadow-xl"
-                : "hover:bg-gray-50 shadow-md hover:shadow-md"
+                : "hover:bg-gray-50 hover:shadow-md"
             }`}
         >
           <td className="px-4 py-3">

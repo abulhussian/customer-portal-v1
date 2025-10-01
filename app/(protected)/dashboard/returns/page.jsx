@@ -571,8 +571,8 @@ const Returns = () => {
   }
 
   return (
-    <div className="flex h-screen ">
-      <main className="flex-1 p-2 md:p-3">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <main className="flex-1 p-2 md:p-3 overflow-y-auto">
         {selectedReturnId ? (
           // Customer Detail View
           <div className="mx-auto max-w-6xl space-y-2">
@@ -945,23 +945,22 @@ const Returns = () => {
              bg-gradient-to-br from-emerald-400 to-green-500 text-white relative cursor-pointer"
   >
     {statusFilter === "in review" && (
-      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
-        <div className="bg-gradient-to-br from-emerald-400 to-green-500 rounded-full p-1 shadow-lg">
+      <div className="absolute -top-2 right-2">
+        <div className="bg-gradient-to-br from-emerald-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
           <Check className="h-5 w-5 text-white" />
         </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-white/20">
-        <FileText className="h-4 w-4 text-white" />
+    <div className="flex items-center mb-2 gap-2 w-full">
+      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-green-600">
+        <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-green-600/20 flex items-center justify-center">
+          <FileText className="h-4 w-4 text-white" />
+        </div>
       </div>
-      <h3 className="text-xs font-medium">In Review</h3>
+      <h3 className="text-sm font-bold">In Review</h3>
     </div>
     <div>
-      <div className="text-xl font-bold">{stats.inReview}</div>
-      <div className="mt-0.5 text-xs opacity-90">
-        {stats.total > 0 ? Math.round((stats.inReview / stats.total) * 100) : 0}% of total
-      </div>
+      <div className="text-xl font-bold pl-2">{stats.inReview}</div>
     </div>
   </motion.div>
 
@@ -974,23 +973,22 @@ const Returns = () => {
                bg-gradient-to-br from-amber-300 to-orange-400 text-white relative cursor-pointer"
   >
     {statusFilter === "initial request" && (
-      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
-        <div className="bg-gradient-to-br from-amber-300 to-orange-400 rounded-full p-1 shadow-lg">
+      <div className="absolute -top-2 right-2">
+        <div className="bg-gradient-to-br from-amber-300 to-orange-400 rounded-full p-1 shadow-lg flex items-center justify-center">
           <Check className="h-5 w-5 text-white" />
         </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-white/20">
-        <Clock className="h-4 w-4 text-white" />
+    <div className="flex items-center mb-2 gap-2 w-full">
+      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-orange-600">
+        <div className="p-2 rounded-full bg-gradient-to-br from-amber-500 to-orange-600/20 flex items-center justify-center">
+          <Clock className="h-4 w-4 text-white" />
+        </div>
       </div>
-      <h3 className="text-xs font-medium">Initial Request</h3>
+      <h3 className="text-sm font-bold">Initial Request</h3>
     </div>
     <div>
-      <div className="text-xl font-bold">{stats.initialRequest}</div>
-      <div className="mt-0.5 text-xs opacity-90">
-        {stats.total > 0 ? Math.round((stats.initialRequest / stats.total) * 100) : 0}% of total
-      </div>
+      <div className="text-xl font-bold pl-2">{stats.initialRequest}</div>
     </div>
   </motion.div>
 
@@ -1003,23 +1001,22 @@ const Returns = () => {
                bg-gradient-to-br from-teal-400 to-emerald-500 text-white relative cursor-pointer"
   >
     {statusFilter === "document verified" && (
-      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
-        <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full p-1 shadow-lg">
+      <div className="absolute -top-2 right-2">
+        <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full p-1 shadow-lg flex items-center justify-center">
           <Check className="h-5 w-5 text-white" />
         </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-white/20">
-        <FileCheck2 className="h-4 w-4 text-white" />
+    <div className="flex items-center mb-2 gap-2">
+      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-emerald-700">
+        <div className="p-2 rounded-full bg-gradient-to-br from-teal-600 to-emerald-700/20 flex items-center justify-center">
+          <FileCheck2 className="h-4 w-4 text-white" />
+        </div>
       </div>
-      <h3 className="text-xs font-medium">Document Verified</h3>
+      <h3 className="text-sm font-bold">Document Verified</h3>
     </div>
     <div>
-      <div className="text-xl font-bold">{stats.documentVerified}</div>
-      <div className="mt-0.5 text-xs opacity-90">
-        {stats.total > 0 ? Math.round((stats.documentVerified / stats.total) * 100) : 0}% of total
-      </div>
+      <div className="text-xl font-bold pl-2">{stats.documentVerified}</div>
     </div>
   </motion.div>
 
@@ -1032,23 +1029,22 @@ const Returns = () => {
                bg-gradient-to-br from-violet-400 to-purple-500 text-white relative cursor-pointer"
   >
     {statusFilter === "in preparation" && (
-      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
-        <div className="bg-gradient-to-br from-violet-400 to-purple-500 rounded-full p-1 shadow-lg">
+      <div className="absolute -top-2 right-2">
+        <div className="bg-gradient-to-br from-violet-400 to-purple-500 rounded-full p-1 shadow-lg flex items-center justify-center">
           <Check className="h-5 w-5 text-white" />
         </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-white/20">
-        <FilePenLine className="h-4 w-4 text-white" />
+    <div className="flex items-center mb-2 gap-2">
+      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-purple-600">
+        <div className="p-2 rounded-full bg-gradient-to-br from-violet-500 to-purple-700/20 flex items-center justify-center">
+          <FilePenLine className="h-4 w-4 text-white" />
+        </div>
       </div>
-      <h3 className="text-xs font-medium">In Preparation</h3>
+      <h3 className="text-sm font-bold">In Preparation</h3>
     </div>
     <div>
-      <div className="text-xl font-bold">{stats.inPreparation}</div>
-      <div className="mt-0.5 text-xs opacity-90">
-        {stats.total > 0 ? Math.round((stats.inPreparation / stats.total) * 100) : 0}% of total
-      </div>
+      <div className="text-xl font-bold pl-2">{stats.inPreparation}</div>
     </div>
   </motion.div>
 
@@ -1061,23 +1057,22 @@ const Returns = () => {
                bg-gradient-to-br from-slate-400 to-gray-500 text-white relative cursor-pointer"
   >
     {statusFilter === "ready to file" && (
-      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
-        <div className="bg-gradient-to-br from-slate-400 to-gray-500 rounded-full p-1 shadow-lg">
+      <div className="absolute -top-2 right-2">
+        <div className="bg-gradient-to-br from-slate-400 to-gray-500 rounded-full p-1 shadow-lg flex items-center justify-center">
           <Check className="h-5 w-5 text-white" />
         </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-white/20">
-        <FileUp className="h-4 w-4 text-white" />
+    <div className="flex items-center mb-2 gap-2">
+      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-gray-700">
+        <div className="p-2 rounded-full bg-gradient-to-br from-slate-600 to-gray-700/20 flex items-center justify-center">
+          <FileUp className="h-4 w-4 text-white" />
+        </div>
       </div>
-      <h3 className="text-xs font-medium">Ready to File</h3>
+      <h3 className="text-sm font-bold">Ready to File</h3>
     </div>
     <div>
-      <div className="text-xl font-bold">{stats.readyToFile}</div>
-      <div className="mt-0.5 text-xs opacity-90">
-        {stats.total > 0 ? Math.round((stats.readyToFile / stats.total) * 100) : 0}% of total
-      </div>
+      <div className="text-xl font-bold pl-2">{stats.readyToFile}</div>
     </div>
   </motion.div>
 
@@ -1090,27 +1085,25 @@ const Returns = () => {
                bg-gradient-to-br from-lime-400 to-green-500 text-white relative cursor-pointer"
   >
     {statusFilter === "filed return" && (
-      <div className="absolute -top-2 right-2 transform translate-x-1/2 -translate-y-1/2">
-        <div className="bg-gradient-to-br from-lime-400 to-green-500 rounded-full p-1 shadow-lg">
+      <div className="absolute -top-2 right-2">
+        <div className="bg-gradient-to-br from-lime-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
           <Check className="h-5 w-5 text-white" />
         </div>
       </div>
     )}
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-white/20">
-        <Check className="h-4 w-4 text-white" />
+    <div className="flex items-center mb-2 gap-2">
+      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-green-700">
+        <div className="p-2 rounded-full bg-gradient-to-br from-lime-600 to-green-700/20 flex items-center justify-center">
+          <Check className="h-4 w-4 text-white" />
+        </div>
       </div>
-      <h3 className="text-xs font-medium">Filed Return</h3>
+      <h3 className="text-sm font-bold">Filed Return</h3>
     </div>
     <div>
       <div className="text-xl font-bold">{stats.filed}</div>
-      <div className="mt-0.5 text-xs opacity-90">
-        {stats.total > 0 ? Math.round((stats.filed / stats.total) * 100) : 0}% of total
-      </div>
     </div>
   </motion.div>
 </div>
-
 
 
               {/* Search and Filter Bar */}
@@ -1359,7 +1352,7 @@ const Returns = () => {
             </td>
             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{returnItem.type}</td>
             <td className="px-4 py-3 whitespace-nowrap">
-              <span className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-medium rounded-lg ${getStatusColor(returnItem.status)}`}>
+              <span className={`inline-flex justify-center items-center min-w-[130px] px-4 py-2 text-xs font-medium rounded-lg ${getStatusColor(returnItem.status)}`}>
                 {returnItem.status}
               </span>
             </td>

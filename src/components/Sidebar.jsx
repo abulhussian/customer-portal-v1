@@ -87,23 +87,13 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
           width: isCollapsed ? 80 : 240,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className={`fixed left-0 top-0 z-50 h-full lg:relative lg:h-[600px] flex flex-col`}
+        className={`fixed left-0 top-0 z-50 h-full lg:relative lg:h-[600px] flex flex-col relative`}
         style={{
           backgroundColor: "#541DA0",
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-sidebar-border/10 relative">
-          {/* Collapse toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex h-8 w-8 p-0 text-white absolute top-0 right-0 bg-[#FC6719] hover:bg-white"
-          >
-            {isCollapsed ? <ChevronRight className="w-7 h-7" /> : <ChevronLeft className="w-7 h-7" />}
-          </Button>
-
+        <div className="flex items-center justify-between p-4 border-b border-sidebar-border/10">
           {/* Close button (mobile) */}
           <Button
             variant="ghost"
@@ -115,63 +105,77 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
           </Button>
         </div>
 
-       {/* Navigation + Sign Out */}
-<div className="flex flex-col flex-1 overflow-y-auto">
-  <nav className="p-2 space-y-2">
-    {navigationItems.map((item, index) => {
-      const isActive = currentPath === item.href
-      const Icon = item.icon
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="p-2 space-y-2">
+            {navigationItems.map((item, index) => {
+              const isActive = currentPath === item.href
+              const Icon = item.icon
 
-      return (
-        <Link key={item.name} href={item.href}>
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: index * 0.1 }}
-    whileHover={{ scale: 1.02, x: 4 }}
-    whileTap={{ scale: 0.98 }}
-    className={`flex items-center gap-2 px-4 py-2 my-4 rounded-xl transition-all duration-200 ${
-      isActive
-        ? "bg-[#FC6719] text-white shadow-md"
-        : "text-white hover:bg-white hover:text-[#8461B4]"
-    }`}
-    onClick={() => {
-      if (window.innerWidth < 1024) {
-        setIsOpen(false)
-      }
-    }}
+              return (
+                <Link key={item.name} href={item.href}>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex items-center gap-2 px-4 py-2 my-4 rounded-xl transition-all duration-200 ${isActive
+                      ? "bg-[#FC6719] text-white shadow-md"
+                      : "text-white hover:bg-white hover:text-[#8461B4]"
+                      }`}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) {
+                        setIsOpen(false)
+                      }
+                    }}
+                  >
+                    <Icon className={`${isCollapsed ? "w-6 h-6 mx-auto" : "w-5 h-5"}`} />
+                    {!isCollapsed && (
+                      <div className="flex-1">
+                        <p className="font-semibold text-base">{item.name}</p>
+                        <p className="text-xs">{item.description}</p>
+                      </div>
+                    )}
+                  </motion.div>
+                </Link>
+              )
+            })}
+          </nav>
+        </div>
+
+        {/* Bottom Section - Collapse Button and Sign Out */}
+                {/* Bottom Section - Collapse Button and Sign Out */}
+      <div className="flex items-center justify-between mt-auto border-t border-sidebar-border/30 px-4 py-2">
+  {/* Sign Out */}
+  {currentUser && (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleLogout}
+      className="flex items-center justify-center bg-[#FC6719] text-white hover:bg-white hover:text-[#8461B4] transition-colors duration-200 py-2 px-3"
+    >
+      <LogOut className="w-5 h-5" />
+      {!isCollapsed && <span className="ml-2">Sign Out</span>}
+    </Button>
+  )}
+
+  {/* Collapse toggle */}
+  <Button
+    variant="ghost"
+    size="sm"
+    onClick={() => setIsCollapsed(!isCollapsed)}
+    className="hidden lg:flex h-8 w-8 p-0 text-white bg-[#FC6719] hover:bg-white"
   >
-    <Icon className={`${isCollapsed ? "w-6 h-6 mx-auto" : "w-5 h-5"}`} />
-    {!isCollapsed && (
-      <div className="flex-1">
-        <p className="font-semibold text-base">{item.name}</p>
-        <p className="text-xs">{item.description}</p>
-      </div>
+    {isCollapsed ? (
+      <ChevronRight className="w-7 h-7" />
+    ) : (
+      <ChevronLeft className="w-7 h-7" />
     )}
-  </motion.div>
-</Link>
-
-      )
-    })}
-  </nav>
-
-  {/* Sign Out - Always at Bottom */}
-  <div className="mt-auto p-4 border-t border-sidebar-border/30">
-    {currentUser && (
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleLogout}
-        className="w-full flex justify-start bg-[#FC6719] text-white hover:bg-white hover:text-[#8461B4] transition-colors duration-200"
-      >
-        <LogOut className="w-5 h-5 mr-2" />
-        {!isCollapsed && "Sign Out"}
-      </Button>
-    )}
-  </div>
+  </Button>
 </div>
 
-        
+
       </motion.aside>
     </>
   )
