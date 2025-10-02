@@ -33,7 +33,7 @@ export default function DashboardLayout({ children, isOpen, setIsOpen, currentPa
   const [isMobile, setIsMobile] = useState(false)
   const { currentUser, logout } = useAuth()
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-const [isFormModalOpen, setIsFormModalOpen] = useState(false) // new state
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false) // new state
 
   const router = useRouter()
   const pathname = usePathname()
@@ -120,11 +120,11 @@ const [isFormModalOpen, setIsFormModalOpen] = useState(false) // new state
 
   return (
 
-    <div className="flex h-screen bg-gray-50" style={{overflow : 'scroll'}}>
+    <div className="flex h-screen bg-gray-50" >
       {/* Main Content Area */}
       <div className="flex-1  bg-white relative">
         {/* Page Content */}
-        <main className="flex-1 pt-4 pb-0 pr-0 z-9 " style={{
+        <main className="flex-1 pt-4 pb-0 pr-0 z-11 " style={{
           backgroundColor: "#541DA0",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -170,41 +170,35 @@ const [isFormModalOpen, setIsFormModalOpen] = useState(false) // new state
 
           {/* Main Content Area with White Background */}
           <div className="z-10">
-            {/* <div className="flex">
-              <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} currentPath={currentPath} />
-              <div 
-                className="flex-1 z-2 w-full h-full pl-2 pt-0 pr-0 pb-0 bg-white z-11" 
+            <div className="flex w-full h-full ">
+              {/* Sidebar: blur when modal is open */}
+              <div
+                className={`transition-all duration-300 ${isFilterModalOpen || isFormModalOpen ? "blur-sm" : ""
+                  }`}
+              >
+                <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} currentPath={currentPath} />
+              </div>
+
+              {/* Main content: scrollable */}
+              <div
+                className="flex-1 flex flex-col bg-white pl-2 pt-0 pr-0 pb-0 z-10"
                 style={{ borderTopLeftRadius: "50px" }}
               >
-                 <FilterModalContext.Provider value={{ isFilterModalOpen, setIsFilterModalOpen }}>
-      {children}
-    </FilterModalContext.Provider>
+                <FilterModalContext.Provider
+                  value={{
+                    isFilterModalOpen,
+                    setIsFilterModalOpen,
+                    isFormModalOpen,
+                    setIsFormModalOpen,
+                  }}
+                >
+                  <div className="flex-1">
+                    {children}
+                  </div>
+                </FilterModalContext.Provider>
               </div>
-            </div> */}
-           <div className="flex w-full h-full">
-  {/* Sidebar: blur when modal is open */}
-  <div
-    className={`transition-all duration-300 ${
-     isFilterModalOpen || isFormModalOpen ?  "blur-sm" : ""
-    }`}
-  >
-    <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} currentPath={currentPath} />
-  </div>
 
-  {/* Main content: scrollable */}
-  <div
-    className="flex-1 flex flex-col h-full bg-white pl-2 pt-0 pr-0 pb-0 z-10"
-    style={{ borderTopLeftRadius: "50px" }}
-  >
-    <FilterModalContext.Provider
-      value={{ isFilterModalOpen, setIsFilterModalOpen,isFormModalOpen, setIsFormModalOpen }}
-    >
-      <div className=" overflow-y-auto">
-        {children}
-      </div>
-    </FilterModalContext.Provider>
-  </div>
-</div>
+            </div>
           </div>
         </main>
       </div>

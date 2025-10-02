@@ -6,7 +6,7 @@ import { BASE_URL } from '@/src/components/BaseUrl';
 import { motion } from "framer-motion"
 import { useFilterModal } from '@/src/components/DashboardLayout';
 export default function Payments() {
-   const { isFilterModalOpen, setIsFilterModalOpen } = useFilterModal();
+  const { isFilterModalOpen, setIsFilterModalOpen } = useFilterModal();
   const [payments, setPayments] = useState([]);
   const [filteredPayments, setFilteredPayments] = useState([]);
   const [displayedPayments, setDisplayedPayments] = useState([]);
@@ -290,7 +290,8 @@ export default function Payments() {
   }
 
   return (
-    <div className="space-y-3 p-2 sm:p-4">
+    <div className=" pl-2 sm:p-4 ">
+      <div className='space-y-3 max-h-[calc(100vh-100px)] overflow-y-auto'>
       <div className="flex items-center justify-between">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
@@ -307,123 +308,123 @@ export default function Payments() {
 
       {/* Summary Cards - Responsive Grid */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-  {/* Paid Transactions Card (Top Right Curve) */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => {
-      if (filters.status === "paid") {
-        setFilters({ ...filters, status: "All" });
-        setAppliedFilters({ ...appliedFilters, status: "All" });
-      } else {
-        setFilters({ ...filters, status: "paid" });
-        setAppliedFilters({ ...appliedFilters, status: "paid" });
-      }
-    }}
-    className="relative rounded-tl-2xl rounded-sm p-2 shadow-md hover:shadow-lg transition-shadow 
+        {/* Paid Transactions Card (Top Right Curve) */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          transition={{ duration: 0.2 }}
+          onClick={() => {
+            if (filters.status === "paid") {
+              setFilters({ ...filters, status: "All" });
+              setAppliedFilters({ ...appliedFilters, status: "All" });
+            } else {
+              setFilters({ ...filters, status: "paid" });
+              setAppliedFilters({ ...appliedFilters, status: "paid" });
+            }
+          }}
+          className="relative rounded-tl-2xl rounded-sm p-2 shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-r from-emerald-500 to-emerald-600 text-white cursor-pointer"
-  >
-    {/* Tick Indicator */}
-    {filters.status === "paid" && (
-      <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
-          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full p-1">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        
-      </div>
-    )}
-    <div className="flex  items-start  gap-2">
+        >
+          {/* Tick Indicator */}
+          {filters.status === "paid" && (
+            <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
+              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full p-1">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+            </div>
+          )}
+          <div className="flex  items-start  gap-2">
             <div className="w-1/6 border-b-2 pb-2 border-emerald-700 ">
-      <div className="p-1 flex justify-center items-center rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700/20">
-        <CreditCard className="h-4 w-4 text-white" />
-      </div>
-      </div>
-      <h3 className="text-sm font-bold  ">Paid Transactions</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold mt-2 pl-2 ">
-        {filteredPayments.filter(p => p.status === "paid").length}
-      </div>
-    </div>
-  </motion.div>
+              <div className="p-1 flex justify-center items-center rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700/20">
+                <CreditCard className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            <h3 className="text-sm font-bold  ">Paid Transactions</h3>
+          </div>
+          <div>
+            <div className="text-xl font-bold mt-2 pl-2 ">
+              {filteredPayments.filter(p => p.status === "paid").length}
+            </div>
+          </div>
+        </motion.div>
 
-  {/* Total Transactions Card */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => {
-      setFilters({ ...filters, status: "All" });
-      setAppliedFilters({ ...appliedFilters, status: "All" });
-    }}
-    className="relative p-2 rounded-sm shadow-md hover:shadow-lg transition-shadow 
+        {/* Total Transactions Card */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          transition={{ duration: 0.2 }}
+          onClick={() => {
+            setFilters({ ...filters, status: "All" });
+            setAppliedFilters({ ...appliedFilters, status: "All" });
+          }}
+          className="relative p-2 rounded-sm shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-r from-teal-500 to-teal-600 text-white cursor-pointer"
-  >
-    {/* Tick Indicator */}
-    {filters.status === "All" && (
-      <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
-          <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-full p-1">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
+        >
+          {/* Tick Indicator */}
+          {filters.status === "All" && (
+            <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
+              <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-full p-1">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+          )}
+          <div className="flex  items-start  gap-2">
+            <div className="w-1/6 border-b-2 pb-2 border-emerald-700 ">
+              <div className="p-1 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-600 to-teal-700/20">
+                <Calendar className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            <h3 className="text-sm font-bold">Total Transactions</h3>
           </div>
-      </div>
-    )}
-    <div className="flex  items-start  gap-2">
-      <div className="w-1/6 border-b-2 pb-2 border-emerald-700 ">
-      <div className="p-1 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-600 to-teal-700/20">
-        <Calendar className="h-4 w-4 text-white" />
-      </div>
-      </div>
-      <h3 className="text-sm font-bold">Total Transactions</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold mt-2 ">{filteredPayments.length}</div>
-    </div>
-  </motion.div>
+          <div>
+            <div className="text-xl font-bold mt-2 ">{filteredPayments.length}</div>
+          </div>
+        </motion.div>
 
-  {/* Pending Transactions Card (Bottom Left Curve) */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => {
-      if (filters.status === "pending") {
-        setFilters({ ...filters, status: "All" });
-        setAppliedFilters({ ...appliedFilters, status: "All" });
-      } else {
-        setFilters({ ...filters, status: "pending" });
-        setAppliedFilters({ ...appliedFilters, status: "pending" });
-      }
-    }}
-    className="relative rounded-br-2xl rounded-sm p-2 pt-2 shadow-md hover:shadow-lg transition-shadow 
+        {/* Pending Transactions Card (Bottom Left Curve) */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          transition={{ duration: 0.2 }}
+          onClick={() => {
+            if (filters.status === "pending") {
+              setFilters({ ...filters, status: "All" });
+              setAppliedFilters({ ...appliedFilters, status: "All" });
+            } else {
+              setFilters({ ...filters, status: "pending" });
+              setAppliedFilters({ ...appliedFilters, status: "pending" });
+            }
+          }}
+          className="relative rounded-br-2xl rounded-sm p-2 pt-2 shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-r from-amber-400 to-amber-500 text-white cursor-pointer"
-  >
-    {/* Tick Indicator */}
-    {filters.status === "pending" && (
-      <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
-          <div className="bg-amber-500 rounded-full p-1">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
+        >
+          {/* Tick Indicator */}
+          {filters.status === "pending" && (
+            <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
+              <div className="bg-amber-500 rounded-full p-1">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+          )}
+          <div className="flex  items-start  gap-2">
+            <div className="w-1/6 border-b-2 pb-2 border-amber-500 ">
+              <div className="p-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600/20 flex justify-center items-center">
+                <CreditCard className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            <h3 className="text-sm font-bold">Pending Transactions</h3>
           </div>
+          <div>
+            <div className="text-xl font-bold pl-2 ">
+              {filteredPayments.filter(p => p.status === "pending").length}
+            </div>
+          </div>
+        </motion.div>
       </div>
-    )}
-    <div className="flex  items-start  gap-2">
-      <div className="w-1/6 border-b-2 pb-2 border-amber-500 ">
-      <div className="p-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600/20 flex justify-center items-center">
-        <CreditCard className="h-4 w-4 text-white" />
-      </div>
-      </div>
-      <h3 className="text-sm font-bold">Pending Transactions</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold pl-2 ">
-        {filteredPayments.filter(p => p.status === "pending").length}
-      </div>
-    </div>
-  </motion.div>
-</div>
 
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-3">
@@ -586,7 +587,7 @@ export default function Payments() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
         {/* Table Section with Scroll */}
         <div className="overflow-y-auto">
-          <div className="max-h-[300px] sm:max-h-[400px]" style={{ overflow: 'scroll' }}>
+          <div className="min-h-[400px] sm:min-h-[400px]" style={{ overflow: 'scroll' }}>
             <table className="w-full">
               <thead className="bg-gray-200 sticky top-0 z-10 py-3">
                 <tr>
@@ -616,57 +617,56 @@ export default function Payments() {
                   </th>
                 </tr>
               </thead>
-       <tbody className="bg-white divide-y divide-gray-200">
-      {displayedPayments.map((payment, index) => (
-        <tr
-          key={payment.id}
-          onClick={() => setSelectedRowId(payment.id)}
-          className={`cursor-pointer transition-all text-center 
-            ${
-              selectedRowId === payment.id
-                ? "bg-indigo-50 shadow-lg  hover:bg-indigo-100 hover:shadow-xl"
-                : "hover:bg-gray-50 hover:shadow-md"
-            }`}
-        >
-          <td className="px-4 py-3">
-            <div className="text-xs sm:text-sm font-mono text-gray-900">
-              {(currentPage - 1) * itemsPerPage + index + 1}
-            </div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="text-xs sm:text-sm font-mono text-gray-900">{payment.transactionId}</div>
-            <div className="text-xs text-gray-500">ID: {payment.id}</div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="text-xs sm:text-sm text-gray-900">{payment.customerName}</div>
-            <div className="text-xs text-gray-500">ID: {payment.customerId}</div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="text-xs sm:text-sm font-medium text-gray-900">
-              {formatCurrency(payment.amount)}
-            </div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="text-xs sm:text-sm text-gray-900">{payment.method}</div>
-          </td>
-          <td className="px-4 py-3">
-            <span
-              className={`inline-flex justify-center items-center min-w-[80px] sm:min-w-[100px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
-                payment.status
-              )}`}
-            >
-              {payment.status}
-            </span>
-          </td>
-          <td className="px-4 py-3 text-xs sm:text-sm text-gray-500">
-            {formatDate(payment.createdAt)}
-          </td>
-          <td className="px-4 py-3">
-            <div className="text-xs sm:text-sm text-gray-900">{payment.description}</div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {displayedPayments.map((payment, index) => (
+                  <tr
+                    key={payment.id}
+                    onClick={() => setSelectedRowId(payment.id)}
+                    className={`cursor-pointer transition-all text-center 
+            ${selectedRowId === payment.id
+                        ? "bg-indigo-50 shadow-lg  hover:bg-indigo-100 hover:shadow-xl"
+                        : "hover:bg-gray-50 hover:shadow-md"
+                      }`}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="text-xs sm:text-sm font-mono text-gray-900">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs sm:text-sm font-mono text-gray-900">{payment.transactionId}</div>
+                      <div className="text-xs text-gray-500">ID: {payment.id}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs sm:text-sm text-gray-900">{payment.customerName}</div>
+                      <div className="text-xs text-gray-500">ID: {payment.customerId}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs sm:text-sm font-medium text-gray-900">
+                        {formatCurrency(payment.amount)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs sm:text-sm text-gray-900">{payment.method}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex justify-center items-center min-w-[80px] sm:min-w-[100px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
+                          payment.status
+                        )}`}
+                      >
+                        {payment.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs sm:text-sm text-gray-500">
+                      {formatDate(payment.createdAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs sm:text-sm text-gray-900">{payment.description}</div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         </div>
@@ -682,57 +682,59 @@ export default function Payments() {
         )}
 
         {/* Pagination */}
-       {filteredPayments.length > 0 && (
-  <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t sticky bottom-0 border-gray-200">
-    {/* Showing results */}
-    <div className="text-xs sm:text-sm text-gray-700">
-      Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-      <span className="font-medium">
-        {Math.min(currentPage * itemsPerPage, filteredPayments.length)}
-      </span>{" "}
-      of <span className="font-medium">{filteredPayments.length}</span> results
-    </div>
+        {filteredPayments.length > 0 && (
+          <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t sticky bottom-0 border-gray-200">
+            {/* Showing results */}
+            <div className="text-xs sm:text-sm text-gray-700">
+              Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+              <span className="font-medium">
+                {Math.min(currentPage * itemsPerPage, filteredPayments.length)}
+              </span>{" "}
+              of <span className="font-medium">{filteredPayments.length}</span> results
+            </div>
 
-    {/* Pagination */}
-    <div className="flex items-center justify-center gap-1 sm:gap-2">
-      {/* Previous Button */}
-      <button
-        onClick={() => paginate(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-      >
-        <ChevronLeft className="h-4 w-4" />
-        <span>Previous</span>
-      </button>
+            {/* Pagination */}
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
+              {/* Previous Button */}
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Previous</span>
+              </button>
 
-      {/* Page Numbers */}
-      {pageNumbers.map((number) => (
-        <button
-          key={number}
-          onClick={() => paginate(number)}
-          className={`px-3 py-1 text-xs sm:text-sm border rounded-md 
+              {/* Page Numbers */}
+              {pageNumbers.map((number) => (
+                <button
+                  key={number}
+                  onClick={() => paginate(number)}
+                  className={`px-3 py-1 text-xs sm:text-sm border rounded-md 
             ${currentPage === number
-              ? "border-[#3F058F] bg-[#3F058F] text-white"
-              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-            }`}
-        >
-          {number}
-        </button>
-      ))}
+                      ? "border-[#3F058F] bg-[#3F058F] text-white"
+                      : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                >
+                  {number}
+                </button>
+              ))}
 
-      {/* Next Button */}
-      <button
-        onClick={() => paginate(currentPage + 1)}
-        disabled={currentPage === pageNumbers.length}
-        className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-      >
-        <span>Next</span>
-        <ChevronRight className="h-4 w-4" />
-      </button>
-    </div>
-  </div>
-)}
+              {/* Next Button */}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === pageNumbers.length}
+                className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
       </div>
     </div>
+
   );
 }

@@ -571,7 +571,7 @@ const Returns = () => {
   }
 
   return (
-    <div className="">
+    <div className="flex flex-1 overflow-hidden " style={{ borderTopLeftRadius: "50px" }}>
       <main className="flex-1 p-2 md:p-3 ">
         {selectedReturnId ? (
           // Customer Detail View
@@ -914,7 +914,7 @@ const Returns = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-1"
+            className="space-y-1 overflow-y-auto max-h-[calc(100vh-100px)]"  // ✅ set max height and enable vertical scrolling
           >
             <>
               {/* Header */}
@@ -1305,8 +1305,8 @@ const Returns = () => {
               {/* Returns Table */}
               <div className="bg-white shadow  rounded-lg overflow-hidden">
                 <div className="">
-                  <div className="max-h-[400px] overflow-y-auto">
-                    <table className="min-w-full divide-y divide-gray-200 text-center">
+                  <div className="min-h-[400px] overflow-y-auto">
+                    <table className="min-w-full  divide-y divide-gray-200 text-center">
                       <thead className="bg-gray-200 sticky top-0 rounded-md">
                         <tr>
                           <th className="px-6 py-5 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">

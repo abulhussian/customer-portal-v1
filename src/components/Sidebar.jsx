@@ -106,7 +106,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="">
           <nav className="p-2 space-y-2">
             {navigationItems.map((item, index) => {
               const isActive = currentPath === item.href
@@ -145,35 +145,34 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
         </div>
 
         {/* Bottom Section - Collapse Button and Sign Out */}
-                {/* Bottom Section - Collapse Button and Sign Out */}
-      <div className="flex items-center justify-between mt-auto border-t border-sidebar-border/30 px-4 py-2">
-  {/* Sign Out */}
-  {currentUser && (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleLogout}
-      className="flex items-center justify-center bg-[#FC6719] text-white hover:bg-white hover:text-[#8461B4] transition-colors duration-200 py-2 px-3"
-    >
-      <LogOut className="w-5 h-5" />
-      {!isCollapsed && <span className="ml-2">Sign Out</span>}
-    </Button>
-  )}
+        <div className="flex relative items-center justify-between mt-auto border-t border-sidebar-border/30 px-4 py-2">
+          {/* Sign Out */}
+          {currentUser && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="flex items-center justify-center bg-[#FC6719] text-white hover:bg-white hover:text-[#8461B4] transition-colors duration-200 py-2 px-3"
+            >
+              <LogOut className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-2">Sign Out</span>}
+            </Button>
+          )}
 
-  {/* Collapse toggle */}
-  <Button
-    variant="ghost"
-    size="sm"
-    onClick={() => setIsCollapsed(!isCollapsed)}
-    className="hidden lg:flex h-8 w-8 p-0 text-white bg-[#FC6719] hover:bg-white"
-  >
-    {isCollapsed ? (
-      <ChevronRight className="w-7 h-7" />
-    ) : (
-      <ChevronLeft className="w-7 h-7" />
-    )}
-  </Button>
-</div>
+          {/* Collapse toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hidden absolute bottom-0 -right-2 lg:flex h-4 w-4 p-0 text-white bg-[#FC6719] hover:bg-white"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4" />
+            ) : (
+              <ChevronLeft className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
 
 
       </motion.aside>

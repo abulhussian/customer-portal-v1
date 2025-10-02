@@ -182,12 +182,12 @@ const Dashboard = () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     ) : (
-      <main className="flex flex-col p-4 lg:pl-4">
+      <main className="flex flex-col p-4 lg:pl-4 ">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-4"
+          className="space-y-1 max-h-[calc(100vh-150px)] overflow-y-auto"
         >
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -201,7 +201,7 @@ const Dashboard = () => {
                 </div>
                 <h3 className="text-sm font-bold pb-2">Total Returns</h3>
               </div>
-              <div className="text-2xl font-bold text-white mt-2">{stats.totalReturns}</div>
+              <div className="text-2xl font-bold text-white mt-4 pl-2">{stats.totalReturns}</div>
             </div>
 
             {/* Card 2 - Normal */}
@@ -214,7 +214,7 @@ const Dashboard = () => {
                 </div>
                 <h3 className="text-sm font-bold pb-2">Pending Returns</h3>
               </div>
-              <div className="text-2xl font-bold text-white mt-2">{stats.pendingReturns}</div>
+              <div className="text-2xl font-bold text-white mt-4 pl-2">{stats.pendingReturns}</div>
             </div>
 
             {/* Card 3 - Bottom Right Rounded */}
@@ -227,7 +227,7 @@ const Dashboard = () => {
                 </div>
                 <h3 className="text-sm font-bold pb-2">Outstanding Invoices</h3>
               </div>
-              <div className="text-2xl font-bold text-white mt-2">{stats.unpaidInvoices}</div>
+              <div className="text-2xl font-bold text-white mt-4 pl-2">{stats.unpaidInvoices}</div>
             </div>
           </div>
 
