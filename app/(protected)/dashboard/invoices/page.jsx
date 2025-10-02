@@ -529,7 +529,7 @@ export default function Invoices() {
   }
 
   return (
-    <div className="p-3  h-screen max-w-full overflow-y-auto flex flex-col">
+    <div className="p-3   max-w-full  flex flex-col">
       <div className="">
       {/* View Invoice Modal */}
       {viewInvoice && (

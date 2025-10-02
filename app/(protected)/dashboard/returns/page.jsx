@@ -70,7 +70,7 @@ function DocIcon({ type, className }) {
 }
 
 const Returns = () => {
-  const { isFilterModalOpen, setIsFilterModalOpen } = useFilterModal();
+  const { isFilterModalOpen, setIsFilterModalOpen,   setIsFormModalOpen } = useFilterModal();
 
   console.log("Filter modal state in Returns:", isFilterModalOpen, setIsFilterModalOpen);
   const getUserId = () => {
@@ -297,49 +297,49 @@ const Returns = () => {
     [allReturnsData],
   )
 
- const downloadDocument = useCallback(async (doc) => {
-  try {
-    const downloadUrl = `http://192.168.1.5:3000/api/download-doc/${doc.id}`
-    const response = await fetch(downloadUrl, {
-      headers: {
-        "Authorization": `Bearer ${localStorage.getItem('token')}`
-      }
-    })
+  const downloadDocument = useCallback(async (doc) => {
+    try {
+      const downloadUrl = `http://192.168.1.5:3000/api/download-doc/${doc.id}`
+      const response = await fetch(downloadUrl, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+      })
 
-    if (!response.ok) throw new Error(`Download failed: ${response.status}`)
+      if (!response.ok) throw new Error(`Download failed: ${response.status}`)
 
-    // Get the filename from Content-Disposition header or use a default
-    const contentDisposition = response.headers.get('Content-Disposition')
-    let fileName = 'document'
-    
-    if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i)
-      if (filenameMatch && filenameMatch[1]) {
-        fileName = filenameMatch[1]
+      // Get the filename from Content-Disposition header or use a default
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let fileName = 'document'
+
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i)
+        if (filenameMatch && filenameMatch[1]) {
+          fileName = filenameMatch[1]
+        }
+      } else {
+        // Fallback: use doc name or ID
+        fileName = doc.doc_name || `document_${doc.id}`
       }
-    } else {
-      // Fallback: use doc name or ID
-      fileName = doc.doc_name || `document_${doc.id}`
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = window.document.createElement("a")
+      link.href = url
+      link.download = fileName
+      link.style.display = "none"
+
+      window.document.body.appendChild(link)
+      link.click()
+
+      // Cleanup
+      window.document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error downloading document:", error)
+      alert("Failed to download document. Please try again.")
     }
-
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
-    const link = window.document.createElement("a")
-    link.href = url
-    link.download = fileName
-    link.style.display = "none"
-    
-    window.document.body.appendChild(link)
-    link.click()
-    
-    // Cleanup
-    window.document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  } catch (error) {
-    console.error("Error downloading document:", error)
-    alert("Failed to download document. Please try again.")
-  }
-}, [])
+  }, [])
 
   // Initial data loading
   useEffect(() => {
@@ -571,8 +571,8 @@ const Returns = () => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <main className="flex-1 p-2 md:p-3 overflow-y-auto">
+    <div className="">
+      <main className="flex-1 p-2 md:p-3 ">
         {selectedReturnId ? (
           // Customer Detail View
           <div className="mx-auto max-w-6xl space-y-2">
@@ -743,7 +743,6 @@ const Returns = () => {
                                     : "Not set"}
                                 </div>
                               </div>
-
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                   Price
@@ -754,7 +753,6 @@ const Returns = () => {
                               </div>
                             </div>
                           </aside>
-
                           {/* Comments + Timeline */}
                           <div className="md:col-span-4 rounded-md border-gray-200 bg-white p-1 md:p-1">
                             <div className="grid gap-3">
@@ -925,6 +923,9 @@ const Returns = () => {
                   onClick={() => {
                     setEditingReturn(null)
                     setShowForm(true)
+                    // setIsFilterModalOpen(!isFilterModalOpen)
+                        setIsFormModalOpen(true)   // ✅ only open form modal
+
                   }}
                   className="w-fit"
                 >
@@ -933,375 +934,373 @@ const Returns = () => {
                 </Button>
               </div>
 
-             {/* Stats Cards - Responsive Grid */}
-{/* Stats Cards - Responsive Grid */}
-<div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-  {/* In Review Card */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => setStatusFilter(statusFilter === "in review" ? "all" : "in review")}
-    className="rounded-tl-2xl rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+              {/* Stats Cards - Responsive Grid */}
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {/* In Review Card */}
+                <motion.div
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setStatusFilter(statusFilter === "in review" ? "all" : "in review")}
+                  className="rounded-tl-2xl rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
              bg-gradient-to-br from-emerald-400 to-green-500 text-white relative cursor-pointer"
-  >
-    {statusFilter === "in review" && (
-      <div className="absolute -top-2 right-2">
-        <div className="bg-gradient-to-br from-emerald-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
-          <Check className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    )}
-    <div className="flex items-center mb-2 gap-2 w-full">
-      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-green-600">
-        <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-green-600/20 flex items-center justify-center">
-          <FileText className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <h3 className="text-sm font-bold">In Review</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold pl-2">{stats.inReview}</div>
-    </div>
-  </motion.div>
+                >
+                  {statusFilter === "in review" && (
+                    <div className="absolute -top-2 right-2">
+                      <div className="bg-gradient-to-br from-emerald-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center mb-2 gap-2 w-full">
+                    <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-green-600">
+                      <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-green-600/20 flex items-center justify-center">
+                        <FileText className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-bold">In Review</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold pl-2">{stats.inReview}</div>
+                  </div>
+                </motion.div>
 
-  {/* Initial Request Card */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => setStatusFilter(statusFilter === "initial request" ? "all" : "initial request")}
-    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+                {/* Initial Request Card */}
+                <motion.div
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setStatusFilter(statusFilter === "initial request" ? "all" : "initial request")}
+                  className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-br from-amber-300 to-orange-400 text-white relative cursor-pointer"
-  >
-    {statusFilter === "initial request" && (
-      <div className="absolute -top-2 right-2">
-        <div className="bg-gradient-to-br from-amber-300 to-orange-400 rounded-full p-1 shadow-lg flex items-center justify-center">
-          <Check className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    )}
-    <div className="flex items-center mb-2 gap-2 w-full">
-      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-orange-600">
-        <div className="p-2 rounded-full bg-gradient-to-br from-amber-500 to-orange-600/20 flex items-center justify-center">
-          <Clock className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <h3 className="text-sm font-bold">Initial Request</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold pl-2">{stats.initialRequest}</div>
-    </div>
-  </motion.div>
+                >
+                  {statusFilter === "initial request" && (
+                    <div className="absolute -top-2 right-2">
+                      <div className="bg-gradient-to-br from-amber-300 to-orange-400 rounded-full p-1 shadow-lg flex items-center justify-center">
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center mb-2 gap-2 w-full">
+                    <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-orange-600">
+                      <div className="p-2 rounded-full bg-gradient-to-br from-amber-500 to-orange-600/20 flex items-center justify-center">
+                        <Clock className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-bold">Initial Request</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold pl-2">{stats.initialRequest}</div>
+                  </div>
+                </motion.div>
 
-  {/* Document Verified Card */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => setStatusFilter(statusFilter === "document verified" ? "all" : "document verified")}
-    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+                {/* Document Verified Card */}
+                <motion.div
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setStatusFilter(statusFilter === "document verified" ? "all" : "document verified")}
+                  className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-br from-teal-400 to-emerald-500 text-white relative cursor-pointer"
-  >
-    {statusFilter === "document verified" && (
-      <div className="absolute -top-2 right-2">
-        <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full p-1 shadow-lg flex items-center justify-center">
-          <Check className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    )}
-    <div className="flex items-center mb-2 gap-2">
-      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-emerald-700">
-        <div className="p-2 rounded-full bg-gradient-to-br from-teal-600 to-emerald-700/20 flex items-center justify-center">
-          <FileCheck2 className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <h3 className="text-sm font-bold">Document Verified</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold pl-2">{stats.documentVerified}</div>
-    </div>
-  </motion.div>
+                >
+                  {statusFilter === "document verified" && (
+                    <div className="absolute -top-2 right-2">
+                      <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full p-1 shadow-lg flex items-center justify-center">
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center mb-2 gap-2">
+                    <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-emerald-700">
+                      <div className="p-2 rounded-full bg-gradient-to-br from-teal-600 to-emerald-700/20 flex items-center justify-center">
+                        <FileCheck2 className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-bold">Document Verified</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold pl-2">{stats.documentVerified}</div>
+                  </div>
+                </motion.div>
 
-  {/* In Preparation Card */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => setStatusFilter(statusFilter === "in preparation" ? "all" : "in preparation")}
-    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+                {/* In Preparation Card */}
+                <motion.div
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setStatusFilter(statusFilter === "in preparation" ? "all" : "in preparation")}
+                  className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-br from-violet-400 to-purple-500 text-white relative cursor-pointer"
-  >
-    {statusFilter === "in preparation" && (
-      <div className="absolute -top-2 right-2">
-        <div className="bg-gradient-to-br from-violet-400 to-purple-500 rounded-full p-1 shadow-lg flex items-center justify-center">
-          <Check className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    )}
-    <div className="flex items-center mb-2 gap-2">
-      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-purple-600">
-        <div className="p-2 rounded-full bg-gradient-to-br from-violet-500 to-purple-700/20 flex items-center justify-center">
-          <FilePenLine className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <h3 className="text-sm font-bold">In Preparation</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold pl-2">{stats.inPreparation}</div>
-    </div>
-  </motion.div>
+                >
+                  {statusFilter === "in preparation" && (
+                    <div className="absolute -top-2 right-2">
+                      <div className="bg-gradient-to-br from-violet-400 to-purple-500 rounded-full p-1 shadow-lg flex items-center justify-center">
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center mb-2 gap-2">
+                    <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-purple-600">
+                      <div className="p-2 rounded-full bg-gradient-to-br from-violet-500 to-purple-700/20 flex items-center justify-center">
+                        <FilePenLine className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-bold">In Preparation</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold pl-2">{stats.inPreparation}</div>
+                  </div>
+                </motion.div>
 
-  {/* Ready to File Card */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => setStatusFilter(statusFilter === "ready to file" ? "all" : "ready to file")}
-    className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+                {/* Ready to File Card */}
+                <motion.div
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setStatusFilter(statusFilter === "ready to file" ? "all" : "ready to file")}
+                  className="rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-br from-slate-400 to-gray-500 text-white relative cursor-pointer"
-  >
-    {statusFilter === "ready to file" && (
-      <div className="absolute -top-2 right-2">
-        <div className="bg-gradient-to-br from-slate-400 to-gray-500 rounded-full p-1 shadow-lg flex items-center justify-center">
-          <Check className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    )}
-    <div className="flex items-center mb-2 gap-2">
-      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-gray-700">
-        <div className="p-2 rounded-full bg-gradient-to-br from-slate-600 to-gray-700/20 flex items-center justify-center">
-          <FileUp className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <h3 className="text-sm font-bold">Ready to File</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold pl-2">{stats.readyToFile}</div>
-    </div>
-  </motion.div>
+                >
+                  {statusFilter === "ready to file" && (
+                    <div className="absolute -top-2 right-2">
+                      <div className="bg-gradient-to-br from-slate-400 to-gray-500 rounded-full p-1 shadow-lg flex items-center justify-center">
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center mb-2 gap-2">
+                    <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-gray-700">
+                      <div className="p-2 rounded-full bg-gradient-to-br from-slate-600 to-gray-700/20 flex items-center justify-center">
+                        <FileUp className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-bold">Ready to File</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold pl-2">{stats.readyToFile}</div>
+                  </div>
+                </motion.div>
 
-  {/* Filed Return Card */}
-  <motion.div
-    whileHover={{ y: -3 }}
-    transition={{ duration: 0.2 }}
-    onClick={() => setStatusFilter(statusFilter === "filed return" ? "all" : "filed return")}
-    className="rounded-br-2xl rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
+                {/* Filed Return Card */}
+                <motion.div
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setStatusFilter(statusFilter === "filed return" ? "all" : "filed return")}
+                  className="rounded-br-2xl rounded-sm p-3 shadow-md hover:shadow-lg transition-shadow 
                bg-gradient-to-br from-lime-400 to-green-500 text-white relative cursor-pointer"
-  >
-    {statusFilter === "filed return" && (
-      <div className="absolute -top-2 right-2">
-        <div className="bg-gradient-to-br from-lime-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
-          <Check className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    )}
-    <div className="flex items-center mb-2 gap-2">
-      <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-green-700">
-        <div className="p-2 rounded-full bg-gradient-to-br from-lime-600 to-green-700/20 flex items-center justify-center">
-          <Check className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <h3 className="text-sm font-bold">Filed Return</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold">{stats.filed}</div>
-    </div>
-  </motion.div>
-</div>
+                >
+                  {statusFilter === "filed return" && (
+                    <div className="absolute -top-2 right-2">
+                      <div className="bg-gradient-to-br from-lime-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center mb-2 gap-2">
+                    <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-green-700">
+                      <div className="p-2 rounded-full bg-gradient-to-br from-lime-600 to-green-700/20 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-bold">Filed Return</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold">{stats.filed}</div>
+                  </div>
+                </motion.div>
+              </div>
 
 
               {/* Search and Filter Bar */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 pl-2">
-  <div className="flex flex-col md:flex-row gap-4">
-    <div className="relative flex-1">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-      <input
-        type="text"
-        placeholder="Search returns by ID, type, status, or name..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      />
-    </div>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search returns by ID, type, status, or name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
 
-    <div className="flex flex-col md:flex-row gap-2">
-      <button
-  onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
-  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors relative"
->
-  <Filter className="h-4 w-4" />
-  <span className="hidden sm:inline">Filters</span>
-  {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
-    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-      {[statusFilter, typeFilter, dateFilter].filter(filter => filter !== "all").length}
-    </span>
-  )}
-</button>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <button
+                      onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors relative"
+                    >
+                      <Filter className="h-4 w-4" />
+                      <span className="hidden sm:inline">Filters</span>
+                      {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
+                        <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {[statusFilter, typeFilter, dateFilter].filter(filter => filter !== "all").length}
+                        </span>
+                      )}
+                    </button>
 
-    </div>
-  </div>
+                  </div>
+                </div>
 
-  {/* Applied Filters */}
-  {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
-    <div className="mt-1 flex flex-wrap gap-4 items-center">
-      <div className="pr-1 border-r-2 pl-2">
-        <h1 className="text-gray-700 font-bold">Applied Filters</h1>
-        {(searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
-          <button
-            onClick={() => {
-              setSearchTerm("")
-              setStatusFilter("all")
-              setTypeFilter("all")
-              setDateFilter("all")
-            }}
-            className="text-sm text-orange-600 hover:text-orange-700 transition-colors"
-          >
-            Clear all
-          </button>
-        )}
-      </div>
-      {statusFilter !== "all" && (
-        <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
-          {statusFilter}
-          <button
-            onClick={() => setStatusFilter("all")}
-            className="ml-2 text-blue-600 hover:text-blue-800"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      )}
+                {/* Applied Filters */}
+                {(statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
+                  <div className="mt-1 flex flex-wrap gap-4 items-center">
+                    <div className="pr-1 border-r-2 pl-2">
+                      <h1 className="text-gray-700 font-bold">Applied Filters</h1>
+                      {(searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
+                        <button
+                          onClick={() => {
+                            setSearchTerm("")
+                            setStatusFilter("all")
+                            setTypeFilter("all")
+                            setDateFilter("all")
+                          }}
+                          className="text-sm text-orange-600 hover:text-orange-700 transition-colors"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                    {statusFilter !== "all" && (
+                      <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
+                        {statusFilter}
+                        <button
+                          onClick={() => setStatusFilter("all")}
+                          className="ml-2 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
 
-      {typeFilter !== "all" && (
-        <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
-          Type: {typeFilter}
-          <button
-            onClick={() => setTypeFilter("all")}
-            className="ml-2 text-blue-600 hover:text-blue-800"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      )}
+                    {typeFilter !== "all" && (
+                      <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
+                        Type: {typeFilter}
+                        <button
+                          onClick={() => setTypeFilter("all")}
+                          className="ml-2 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
 
-      {dateFilter !== "all" && (
-        <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
-          Date: {dateFilter}
-          <button
-            onClick={() => setDateFilter("all")}
-            className="ml-2 text-blue-600 hover:text-blue-800"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      )}
-    </div>
-  )}
-</div>
+                    {dateFilter !== "all" && (
+                      <div className="flex items-center bg-blue-100 text-blue-800 text-sm px-4 py-3 rounded-full">
+                        Date: {dateFilter}
+                        <button
+                          onClick={() => setDateFilter("all")}
+                          className="ml-2 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-{/* Filters Popup Modal */}
-{isFilterModalOpen && (
-  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20 flex justify-center p- box-shadow-lg">
-    <div
-  className={`fixed inset-0 flex items-center justify-center z-50 ${
-    isFilterModalOpen ? "visible" : "invisible"
-  }`}
->
-  {/* Background overlay */}
-  <div
-    className="absolute inset-0 bg-black opacity-30"
-    onClick={() => setIsFilterModalOpen(false)}
-  ></div>
+              {/* Filters Popup Modal */}
+              {isFilterModalOpen && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20 flex justify-center p- box-shadow-lg">
+                  <div
+                    className={`fixed inset-0 flex items-center justify-center z-50 ${isFilterModalOpen ? "visible" : "invisible"
+                      }`}
+                  >
+                    {/* Background overlay */}
+                    <div
+                      className="absolute inset-0 bg-black opacity-30"
+                      onClick={() => setIsFilterModalOpen(false)}
+                    ></div>
 
-  {/* Modal content */}
-  <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-2 overflow-y-auto">
-    <div className="flex justify-between items-center p-6 pb-0">
-      <h3 className="text-lg font-medium text-gray-900">Filters</h3>
-      <button
-        onClick={() => setIsFilterModalOpen(false)}
-        className="text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <X className="h-6 w-6" />
-      </button>
-    </div>
+                    {/* Modal content */}
+                    <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-2 overflow-y-auto">
+                      <div className="flex justify-between items-center p-6 pb-0">
+                        <h3 className="text-lg font-medium text-gray-900">Filters</h3>
+                        <button
+                          onClick={() => setIsFilterModalOpen(false)}
+                          className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          <X className="h-6 w-6" />
+                        </button>
+                      </div>
 
-    <div className="space-y-4 p-6">
-      {/* Status Filter */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Status
-        </label>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">All Statuses</option>
-          {statusOptions.filter((opt) => opt !== "all").map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-      </div>
+                      <div className="space-y-4 p-6">
+                        {/* Status Filter */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Status
+                          </label>
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="all">All Statuses</option>
+                            {statusOptions.filter((opt) => opt !== "all").map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-      {/* Type Filter */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Type
-        </label>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">All Types</option>
-          {typeOptions.filter((opt) => opt !== "all").map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-      </div>
+                        {/* Type Filter */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Type
+                          </label>
+                          <select
+                            value={typeFilter}
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="all">All Types</option>
+                            {typeOptions.filter((opt) => opt !== "all").map((type) => (
+                              <option key={type} value={type}>
+                                {type}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-      {/* Date Filter */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Date
-        </label>
-        <select
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">All Dates</option>
-          <option value="today">Today</option>
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-        </select>
-      </div>
-    </div>
+                        {/* Date Filter */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Date
+                          </label>
+                          <select
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="all">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                          </select>
+                        </div>
+                      </div>
 
-    {/* Buttons */}
-    <div className="flex justify-end space-x-3 p-6 pt-0">
-      <button
-        onClick={() => {
-          setStatusFilter("all");
-          setTypeFilter("all");
-          setDateFilter("all");
-        }}
-        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-      >
-        Clear all
-      </button>
-      <button
-        onClick={() => setIsFilterModalOpen(false)}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-      >
-        Apply Filters
-      </button>
-    </div>
-  </div>
-</div>
+                      {/* Buttons */}
+                      <div className="flex justify-end space-x-3 p-6 pt-0">
+                        <button
+                          onClick={() => {
+                            setStatusFilter("all");
+                            setTypeFilter("all");
+                            setDateFilter("all");
+                          }}
+                          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                        >
+                          Clear all
+                        </button>
+                        <button
+                          onClick={() => setIsFilterModalOpen(false)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          Apply Filters
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
-  </div>
-)}
+                </div>
+              )}
 
               {/* Returns Table */}
               <div className="bg-white shadow  rounded-lg overflow-hidden">
@@ -1333,43 +1332,43 @@ const Returns = () => {
                           </th>
                         </tr>
                       </thead>
-                     <tbody className="bg-white divide-y divide-gray-200 text-center">
-        {currentItems.map((returnItem, index) => (
-          <tr
-            key={returnItem.id}
-            onClick={() => handleRowClick(returnItem.id)}
-            className={`transition-all cursor-pointer
+                      <tbody className="bg-white divide-y divide-gray-200 text-center">
+                        {currentItems.map((returnItem, index) => (
+                          <tr
+                            key={returnItem.id}
+                            onClick={() => handleRowClick(returnItem.id)}
+                            className={`transition-all cursor-pointer
               ${selectedRowId === returnItem.id ? "bg-purple-100 shadow-lg" : "hover:shadow-md hover:bg-gray-50"}
             `}
-          >
-            <td className="text-sm font-medium text-gray-900 px-4 py-3">{index + 1}</td>
-            <td className="px-2 py-3 hidden sm:table-cell text-sm font-medium text-gray-900">{returnItem.name}</td>
-            <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
-              <div className="flex justify-center items-center">
-                <FileText className="w-4 h-4 text-gray-400 mr-2" />
-                <span className="text-sm text-gray-900">{returnItem.documentCount} files</span>
-              </div>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{returnItem.type}</td>
-            <td className="px-4 py-3 whitespace-nowrap">
-              <span className={`inline-flex justify-center items-center min-w-[130px] px-4 py-2 text-xs font-medium rounded-lg ${getStatusColor(returnItem.status)}`}>
-                {returnItem.status}
-              </span>
-            </td>
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">{formatDate(returnItem.lastUpdated)}</td>
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-              <div className="flex justify-center items-center space-x-2">
-                <button className="text-blue-600 hover:text-blue-700 transition-colors" title="View Details" onClick={() => setSelectedReturnId(returnItem.id)}>
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button className="md:hidden text-gray-600 hover:text-gray-700 transition-colors">
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
+                          >
+                            <td className="text-sm font-medium text-gray-900 px-4 py-3">{index + 1}</td>
+                            <td className="px-2 py-3 hidden sm:table-cell text-sm font-medium text-gray-900">{returnItem.name}</td>
+                            <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
+                              <div className="flex justify-center items-center">
+                                <FileText className="w-4 h-4 text-gray-400 mr-2" />
+                                <span className="text-sm text-gray-900">{returnItem.documentCount} files</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{returnItem.type}</td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className={`inline-flex justify-center items-center min-w-[130px] px-4 py-2 text-xs font-medium rounded-lg ${getStatusColor(returnItem.status)}`}>
+                                {returnItem.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">{formatDate(returnItem.lastUpdated)}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                              <div className="flex justify-center items-center space-x-2">
+                                <button className="text-blue-600 hover:text-blue-700 transition-colors" title="View Details" onClick={() => setSelectedReturnId(returnItem.id)}>
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                <button className="md:hidden text-gray-600 hover:text-gray-700 transition-colors">
+                                  <MoreVertical className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
                     </table>
                     {/* Pagination Controls */}
                     <div className="bg-gray-200 rounded-md px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 sticky bottom-0 z-10">
@@ -1413,8 +1412,8 @@ const Returns = () => {
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
                                     className={`px-3 py-1 text-sm border-r border-gray-300 ${currentPage === page
-                                        ? "bg-[#3F058F] text-white font-semibold"
-                                        : "bg-white text-gray-700 hover:bg-gray-100"
+                                      ? "bg-[#3F058F] text-white font-semibold"
+                                      : "bg-white text-gray-700 hover:bg-gray-100"
                                       }`}
                                   >
                                     {page}
@@ -1458,6 +1457,7 @@ const Returns = () => {
           onClose={() => {
             setShowForm(false)
             setEditingReturn(null)
+            setIsFormModalOpen(false) // close form modal when closing form
           }}
           onSubmit={editingReturn ? handleUpdateReturn : handleAddReturn}
           editingReturn={editingReturn}
