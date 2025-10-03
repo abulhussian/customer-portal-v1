@@ -72,7 +72,7 @@ function DocIcon({ type, className }) {
 const Returns = () => {
   const { isFilterModalOpen, setIsFilterModalOpen,   setIsFormModalOpen } = useFilterModal();
 
-  console.log("Filter modal state in Returns:", isFilterModalOpen, setIsFilterModalOpen);
+  // console.log("Filter modal state in Returns:", isFilterModalOpen, setIsFilterModalOpen);
   const getUserId = () => {
     try {
       const userString = localStorage.getItem("userProfile")

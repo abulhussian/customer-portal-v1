@@ -583,156 +583,93 @@ export default function Payments() {
         </div>
       )}
 
-      {/* Payments Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-        {/* Table Section with Scroll */}
-        <div className="overflow-y-auto">
-          <div className="min-h-[400px] sm:min-h-[400px]" style={{ overflow: 'scroll' }}>
-            <table className="w-full">
-              <thead className="bg-gray-200 sticky top-0 z-10 py-3">
-                <tr>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    SN.NO
-                  </th>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Transaction ID
-                  </th>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Method
-                  </th>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {displayedPayments.map((payment, index) => (
-                  <tr
-                    key={payment.id}
-                    onClick={() => setSelectedRowId(payment.id)}
-                    className={`cursor-pointer transition-all text-center 
-            ${selectedRowId === payment.id
-                        ? "bg-indigo-50 shadow-lg  hover:bg-indigo-100 hover:shadow-xl"
-                        : "hover:bg-gray-50 hover:shadow-md"
-                      }`}
-                  >
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm font-mono text-gray-900">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm font-mono text-gray-900">{payment.transactionId}</div>
-                      <div className="text-xs text-gray-500">ID: {payment.id}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm text-gray-900">{payment.customerName}</div>
-                      <div className="text-xs text-gray-500">ID: {payment.customerId}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm font-medium text-gray-900">
-                        {formatCurrency(payment.amount)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm text-gray-900">{payment.method}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex justify-center items-center min-w-[80px] sm:min-w-[100px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
-                          payment.status
-                        )}`}
-                      >
-                        {payment.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs sm:text-sm text-gray-500">
-                      {formatDate(payment.createdAt)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs sm:text-sm text-gray-900">{payment.description}</div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {filteredPayments.length === 0 && (
-          <div className="text-center py-12">
-            <CreditCard className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No payments found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              No payments match the current filters.
-            </p>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {filteredPayments.length > 0 && (
-          <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t sticky bottom-0 border-gray-200">
-            {/* Showing results */}
-            <div className="text-xs sm:text-sm text-gray-700">
-              Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-              <span className="font-medium">
-                {Math.min(currentPage * itemsPerPage, filteredPayments.length)}
-              </span>{" "}
-              of <span className="font-medium">{filteredPayments.length}</span> results
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-center gap-1 sm:gap-2">
-              {/* Previous Button */}
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+    {/* Payments Table */}
+<div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col" style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}>
+  {/* Table Section with Vertical Scroll */}
+  <div className="overflow-y-auto max-h-[500px]"> {/* Added max height and vertical scroll */}
+    <table className="w-full">
+      <thead className="bg-gray-200 sticky top-0 z-10">
+        <tr>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            SN.NO
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Transaction ID
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Customer
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Amount
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Method
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Status
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Date
+          </th>
+          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Description
+          </th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {displayedPayments.map((payment, index) => (
+          <tr
+            key={payment.id}
+            onClick={() => setSelectedRowId(payment.id)}
+            className={`cursor-pointer transition-all text-center 
+              ${selectedRowId === payment.id
+                ? "bg-indigo-50 shadow-lg hover:bg-indigo-100 hover:shadow-xl"
+                : "hover:bg-gray-50 hover:shadow-md"
+              }`}
+          >
+            <td className="px-4 py-3">
+              <div className="text-xs sm:text-sm font-mono text-gray-900">
+                {(currentPage - 1) * itemsPerPage + index + 1}
+              </div>
+            </td>
+            <td className="px-4 py-3">
+              <div className="text-xs sm:text-sm font-mono text-gray-900">{payment.transactionId}</div>
+              <div className="text-xs text-gray-500">ID: {payment.id}</div>
+            </td>
+            <td className="px-4 py-3">
+              <div className="text-xs sm:text-sm text-gray-900">{payment.customerName}</div>
+              <div className="text-xs text-gray-500">ID: {payment.customerId}</div>
+            </td>
+            <td className="px-4 py-3">
+              <div className="text-xs sm:text-sm font-medium text-gray-900">
+                {formatCurrency(payment.amount)}
+              </div>
+            </td>
+            <td className="px-4 py-3">
+              <div className="text-xs sm:text-sm text-gray-900">{payment.method}</div>
+            </td>
+            <td className="px-4 py-3">
+              <span
+                className={`inline-flex justify-center items-center min-w-[80px] sm:min-w-[100px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
+                  payment.status
+                )}`}
               >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Previous</span>
-              </button>
+                {payment.status}
+              </span>
+            </td>
+            <td className="px-4 py-3 text-xs sm:text-sm text-gray-500">
+              {formatDate(payment.createdAt)}
+            </td>
+            <td className="px-4 py-3">
+              <div className="text-xs sm:text-sm text-gray-900">{payment.description}</div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-              {/* Page Numbers */}
-              {pageNumbers.map((number) => (
-                <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`px-3 py-1 text-xs sm:text-sm border rounded-md 
-            ${currentPage === number
-                      ? "border-[#3F058F] bg-[#3F058F] text-white"
-                      : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                >
-                  {number}
-                </button>
-              ))}
-
-              {/* Next Button */}
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === pageNumbers.length}
-                className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm border border-gray-300 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                <span>Next</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
       </div>
     </div>
 

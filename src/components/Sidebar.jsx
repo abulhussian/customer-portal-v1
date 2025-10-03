@@ -62,7 +62,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
       {isMobile && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-4 left-4 z-40 lg:hidden p-2 rounded-md bg-sidebar text-white shadow-md"
+          className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-md bg-[#541DA0] text-white shadow-lg border border-white/20"
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -74,7 +74,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -83,17 +83,18 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
       <motion.aside
         initial={false}
         animate={{
-          x: isMobile ? (isOpen ? 0 : -240) : 0,
-          width: isCollapsed ? 80 : 240,
+          x: isMobile ? (isOpen ? 0 : -280) : 0,
+          width: isMobile ? 240 : (isCollapsed ? 80 : 240),
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className={`fixed left-0 top-0 z-50 h-full lg:relative lg:h-[600px] flex flex-col relative`}
+        className={`fixed lg:relative h-full flex flex-col z-50 shadow-2xl lg:shadow-none`}
         style={{
           backgroundColor: "#541DA0",
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-sidebar-border/10">
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
+          
           {/* Close button (mobile) */}
           <Button
             variant="ghost"
@@ -106,7 +107,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
         </div>
 
         {/* Navigation */}
-        <div className="">
+        <div className="flex-1">
           <nav className="p-2 space-y-2">
             {navigationItems.map((item, index) => {
               const isActive = currentPath === item.href
@@ -120,10 +121,11 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
                     transition={{ delay: index * 0.1 }}
                     whileHover={{ scale: 1.02, x: 4 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`flex items-center gap-2 px-4 py-2 my-4 rounded-xl transition-all duration-200 ${isActive
-                      ? "bg-[#FC6719] text-white shadow-md"
-                      : "text-white hover:bg-white hover:text-[#8461B4]"
-                      }`}
+                    className={`flex items-center gap-2 px-4 py-2 my-2 rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? "bg-[#FC6719] text-white shadow-md"
+                        : "text-white hover:bg-white/10 hover:text-white"
+                    }`}
                     onClick={() => {
                       if (window.innerWidth < 1024) {
                         setIsOpen(false)
@@ -134,7 +136,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
                     {!isCollapsed && (
                       <div className="flex-1">
                         <p className="font-semibold text-base">{item.name}</p>
-                        <p className="text-xs">{item.description}</p>
+                        <p className="text-xs text-white/80">{item.description}</p>
                       </div>
                     )}
                   </motion.div>
@@ -145,36 +147,38 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
         </div>
 
         {/* Bottom Section - Collapse Button and Sign Out */}
-        <div className="flex relative items-center justify-between mt-auto border-t border-sidebar-border/30 px-4 py-2">
+        <div className="flex items-center justify-between mt-auto border-t border-white/20 p-4 w-full relative">
           {/* Sign Out */}
           {currentUser && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="flex items-center justify-center bg-[#FC6719] text-white hover:bg-white hover:text-[#8461B4] transition-colors duration-200 py-2 px-3"
+              className={`flex items-center justify-center bg-[#FC6719] text-white hover:bg-white hover:text-[#8461B4] transition-colors duration-200 py-2 ${
+                isCollapsed ? "px-2" : "px-3"
+              }`}
             >
               <LogOut className="w-5 h-5" />
               {!isCollapsed && <span className="ml-2">Sign Out</span>}
             </Button>
           )}
 
-          {/* Collapse toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden absolute bottom-0 -right-2 lg:flex h-4 w-4 p-0 text-white bg-[#FC6719] hover:bg-white"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </Button>
+          {/* Collapse toggle - Hidden on mobile */}
+          {!isMobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden lg:flex h-8 w-8 p-0 absolute right-0 text-white bg-[#FC6719] hover:bg-white hover:text-[#8461B4] transform translate-x-1/2"
+            >
+              {isCollapsed ? (
+                <ChevronRight className="w-4 h-4" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </Button>
+          )}
         </div>
-
-
       </motion.aside>
     </>
   )
