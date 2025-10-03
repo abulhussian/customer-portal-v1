@@ -586,7 +586,7 @@ export default function Payments() {
     {/* Payments Table */}
 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col" style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}>
   {/* Table Section with Vertical Scroll */}
-  <div className="overflow-y-auto max-h-[500px]"> {/* Added max height and vertical scroll */}
+  <div className=""> {/* Added max height and vertical scroll */}
     <table className="w-full">
       <thead className="bg-gray-200 sticky top-0 z-10">
         <tr>

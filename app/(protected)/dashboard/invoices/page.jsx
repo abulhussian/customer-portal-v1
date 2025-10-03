@@ -900,7 +900,7 @@ export default function Invoices() {
   style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
 >
   {/* Scrollable Table Wrapper */}
-  <div className="min-h-[400px] h-[500px] overflow-y-auto">
+  <div className="min-h-[400px] h-[500px] ">
     <table className="min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50 sticky top-0 z-10">
         <tr>
@@ -939,7 +939,7 @@ export default function Invoices() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => setSelectedRowId(invoice.id)}
-            className={`cursor-pointer transition-all duration-200 ${
+            className={`cursor-pointer  ${
               selectedRowId === invoice.id
                 ? "bg-indigo-50 shadow-lg"
                 : "hover:bg-gray-50 hover:shadow-md"
