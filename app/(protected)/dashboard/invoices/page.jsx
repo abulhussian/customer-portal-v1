@@ -462,7 +462,7 @@ export default function Invoices() {
               const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json'
+                  'Content-Type': 'application/json',
                   "Authorization": `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
