@@ -186,9 +186,12 @@ const Login = () => {
       const data = await response.json()
 
       const token = data.token
+
       localStorage.setItem("token", token)
+      // console.log("Received token:", token)
 
       if (response.ok) {
+        // Prepare user data for auth context
         const userData = {
           uid: data.user.id,
           email: data.user.email,
@@ -197,22 +200,21 @@ const Login = () => {
           role : data.user.role
         }
 
+        // Update auth context
         login(userData)
-
-        // show loader before navigating
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 800) // short delay so "Verifying..." shows
+        
+        // Redirect to dashboard
+        router.push("/dashboard")
       } else {
         if (data.message?.includes("invalid") || data.message?.includes("incorrect")) {
           setError("OTP is incorrect. Please try again.")
         } else {
           setError(data.message || data.error || "Verification failed. Please try again.")
         }
-        setLoading(false) // reset if failed
       }
     } catch (error) {
       setError("Network error. Please check your connection and try again.")
+    } finally {
       setLoading(false)
     }
   }
@@ -225,6 +227,7 @@ const Login = () => {
   }
 
   const handleSignUpRedirect = () => {
+    
     router.push("/register")
   }
 
@@ -248,6 +251,7 @@ const Login = () => {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="mx-auto mb-4 flex justify-center"
             >
+              {/* Replace with your actual logo path */}
               <Image 
                 src="/favicon.svg" 
                 alt="Invertio Logo" 
@@ -283,8 +287,256 @@ const Login = () => {
               </Alert>
             )}
 
-            {/* Tabs, forms etc remain unchanged */}
-            {/* ... keep rest of your code as it is ... */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+                <TabsTrigger
+                  value="email"
+                  className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Mail className="w-4 h-4" />
+                  Email
+                </TabsTrigger>
+                <TabsTrigger
+                  value="mobile"
+                  className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Phone className="w-4 h-4" />
+                  Mobile
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="email" className="space-y-4">
+                {step === "input" ? (
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="email-password" className="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="email-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={togglePasswordVisibility}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending OTP...
+                        </>
+                      ) : (
+                        "Send OTP"
+                      )}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleOTPVerification} className="space-y-4">
+                    <div>
+                      <label htmlFor="email-otp" className="block text-sm font-medium text-gray-700 mb-2">
+                        Enter OTP
+                      </label>
+                      <Input
+                        id="email-otp"
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className="w-full text-center text-lg tracking-widest"
+                        maxLength={6}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Enter the 6-digit code sent to {email}</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <button 
+                        type="button" 
+                        onClick={handleResendOTP} 
+                        disabled={resendTimer > 0 || resendLoading}
+                        className={`text-sm ${resendTimer > 0 || resendLoading ? 'text-gray-400 cursor-not-allowed' : 'text-primary hover:underline'}`}
+                      >
+                        {resendLoading ? (
+                          <>Resending OTP...</>
+                        ) : resendTimer > 0 ? (
+                          `Resend OTP in ${resendTimer}s`
+                        ) : (
+                          "Resend OTP"
+                        )}
+                      </button>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" onClick={resetForm} className="flex-1 bg-transparent" disabled={loading}>
+                        Back
+                      </Button>
+                      <Button type="submit" className="flex-1" disabled={loading}>
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          "Verify OTP"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </TabsContent>
+
+              <TabsContent value="mobile" className="space-y-4">
+                {step === "input" ? (
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
+                        Mobile Number
+                      </label>
+                      <Input
+                        id="mobile"
+                        type="tel"
+                        placeholder="Enter your mobile number"
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
+                        className="w-full"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="mobile-password" className="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="mobile-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={togglePasswordVisibility}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending OTP...
+                        </>
+                      ) : (
+                        "Send OTP"
+                      )}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleOTPVerification} className="space-y-4">
+                    <div>
+                      <label htmlFor="mobile-otp" className="block text-sm font-medium text-gray-700 mb-2">
+                        Enter OTP
+                      </label>
+                      <Input
+                        id="mobile-otp"
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className="w-full text-center text-lg tracking-widest"
+                        maxLength={6}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Enter the 6-digit code sent to {mobile}</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <button 
+                        type="button" 
+                        onClick={handleResendOTP} 
+                        disabled={resendTimer > 0 || resendLoading}
+                        className={`text-sm ${resendTimer > 0 || resendLoading ? 'text-gray-400 cursor-not-allowed' : 'text-primary hover:underline'}`}
+                      >
+                        {resendLoading ? (
+                          <>Resending OTP...</>
+                        ) : resendTimer > 0 ? (
+                          `Resend OTP in ${resendTimer}s`
+                        ) : (
+                          "Resend OTP"
+                        )}
+                      </button>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" onClick={resetForm} className="flex-1 bg-transparent" disabled={loading}>
+                        Back
+                      </Button>
+                      <Button type="submit" className="flex-1" disabled={loading}>
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          "Verify OTP"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </TabsContent>
+            </Tabs>
+
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <button 
+                  onClick={handleSignUpRedirect} 
+                  className="text-primary hover:underline font-medium transition-colors cursor-pointer"
+                >
+                  Sign up
+                </button>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
