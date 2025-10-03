@@ -463,6 +463,7 @@ export default function Invoices() {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
+                  "Authorization": `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
                   razorpay_order_id: response.razorpay_order_id,
