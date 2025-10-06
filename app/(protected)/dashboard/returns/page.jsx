@@ -299,7 +299,7 @@ const Returns = () => {
 
   const downloadDocument = useCallback(async (doc) => {
     try {
-      const downloadUrl = `http://192.168.1.5:3000/api/download-doc/${doc.id}`
+      const downloadUrl = `${BASE_URL}/api/download-doc/${doc.id}`
       const response = await fetch(downloadUrl, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem('token')}`

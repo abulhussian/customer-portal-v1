@@ -666,7 +666,7 @@ export default function Invoices() {
 
               const statusGradients = {
                 Paid: {
-                  gradient: "bg-gradient-to-r from-green-400 to-green-500",
+                  gradient: "bg-gradient-to-r from-emerald-500 to-emerald-600 ",
                   from: "green",
                   to: "green"
                 },
