@@ -359,12 +359,12 @@ export default function Payments() {
           setAppliedFilters({ ...appliedFilters, status: "All" });
         }}
         className="relative p-2 rounded-sm shadow-md hover:shadow-lg transition-shadow 
-             bg-gradient-to-r from-teal-500 to-teal-600 text-white cursor-pointer"
+             bg-gradient-to-r from-purple-600 to-purple-600 text-white cursor-pointer"
       >
         {/* Tick Indicator */}
         {filters.status === "All" && (
           <div className="absolute top-0 right-2 transform translate-x-1/2 -translate-y-1/2">
-            <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-full p-1">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-600 rounded-full p-1">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
@@ -372,8 +372,8 @@ export default function Payments() {
           </div>
         )}
         <div className="flex  items-start  gap-2">
-          <div className="w-1/6 border-b-2 pb-2 border-emerald-700 ">
-            <div className="p-1 flex items-center justify-center rounded-full bg-gradient-to-r from-teal-600 to-teal-700/20">
+          <div className="w-1/6 border-b-2 pb-2 border-purple-700 ">
+            <div className="p-1 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-700 to-purple-800/20">
               <Calendar className="h-4 w-4 text-white" />
             </div>
           </div>

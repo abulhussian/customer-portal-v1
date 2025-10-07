@@ -182,12 +182,12 @@ const Dashboard = () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     ) : (
-      <main className="flex flex-col p-4 lg:pl-4 ">
+      <main className="flex flex-col overflow-hidden p-4 lg:pl-4 ">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-1 max-h-[calc(100vh-150px)] overflow-y-auto"
+          className="space-y-1 max-h-[calc(100vh-100px)] overflow-y-auto"
         >
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -346,7 +346,7 @@ const Dashboard = () => {
           {/* Quick Actions */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <h2 className="text-md font-bold mb-3">Quick Actions</h2>
-            <div className="overflow-x-auto">
+            <div className="">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 min-w-max">
                 {/* New Tax Return */}
                 <Link

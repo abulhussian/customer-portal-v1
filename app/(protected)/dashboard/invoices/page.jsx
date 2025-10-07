@@ -269,6 +269,8 @@ export default function Invoices() {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10; // ✅ default 10 rows
   const [selectedRowId, setSelectedRowId] = useState(null)
+  // At the top of your component, ensure:
+
 
 
   // Calculate pagination values
@@ -400,121 +402,232 @@ export default function Invoices() {
     }
   };
 
-  const payNow = async (invoice) => {
-    setIsPaying(true)
-    setPayingInvoiceId(invoice.id)
+ const payNow = async (invoice) => {
+  setIsPaying(true);
+  setPayingInvoiceId(invoice.id);
 
-    try {
-      const requestBody = {
-        amount: invoice.invoiceAmount,
-        currency: 'USD',
-        receipt: `rcpt_${Date.now()}`,
-        notes: {
-          invoice_id: invoice.id,
-          customer_name: invoice.customerName
-        },
-        invoice_id: invoice.id,
-        createdby_type: currentUser.role,
-        createdby_id: currentUser.id
-      }
-      const response = await fetch(`${BASE_URL}/api/create-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || 'Failed to create order')
-      }
-
-      const order = await response.json()
-
-      const script = document.createElement('script')
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-      script.onload = () => {
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: order.amount,
-          currency: order.currency,
-          name: 'TaxPortal',
-          description: `Payment for Invoice ${invoice.id}`,
-          order_id: order.id,
-          prefill: {
-            name: currentUser.name,
-            email: currentUser.email,
-          },
-          theme: {
-            color: '#2563EB'
-          },
-          method: {
-            card: true,
-            netbanking: false,
-            wallet: false,
-            upi: false,
-            emi: false
-          },
-          handler: async function (response) {
-            try {
-              const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  "Authorization": `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature
-                })
-              })
-
-              const data = await verifyResponse.json()
-
-              if (data.status === 'ok') {
-                const updatedInvoices = invoices.map(inv =>
-                  inv.id === invoice.id ? { ...inv, status: 'Paid' } : inv
-                )
-                setInvoices(updatedInvoices)
-                alert('Payment successful! Invoice status updated to Paid.')
-                loadInvoices()
-              } else {
-                alert('Payment verification failed')
-              }
-            } catch (error) {
-              console.error('Error:', error)
-              alert('Error verifying payment')
-            }
-          },
-          modal: {
-            ondismiss: function () {
-              setIsPaying(false)
-              setPayingInvoiceId(null)
-            }
-          }
-        }
-
-        const rzp = new window.Razorpay(options)
-        rzp.open()
-      }
-      document.body.appendChild(script)
-
-      script.onerror = () => {
-        setIsPaying(false)
-        setPayingInvoiceId(null)
-        alert('Failed to load payment processor')
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      alert(error.message || 'Error creating payment order')
-      setIsPaying(false)
-      setPayingInvoiceId(null)
+  try {
+    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    if (!razorpayKey) {
+      throw new Error('Payment gateway configuration error.');
     }
-  }
 
+    const totalAmount = invoice.invoiceAmount ;
+    
+    const requestBody = {
+      amount: totalAmount,
+      currency: 'USD',
+      receipt: `rcpt_${invoice.id}_${Date.now()}`,
+      notes: {
+        invoice_id: invoice.id,
+        customer_name: invoice.customerName,
+        customer_id: invoice.customerId
+      },
+      invoice_id: invoice.id,
+      createdby_type: currentUser.role,
+      createdby_id: currentUser.id
+    };
+
+    console.log('Creating order for amount:', totalAmount);
+
+    const response = await fetch(`${BASE_URL}/api/create-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const order = await response.json();
+    console.log('Order created successfully:', order.id);
+
+    // Initialize Razorpay checkout
+    await initializeRazorpayCheckout(order, invoice, razorpayKey);
+
+  } catch (error) {
+    console.error('Payment initiation error:', error);
+    alert(error.message || 'Error initiating payment. Please try again.');
+    setIsPaying(false);
+    setPayingInvoiceId(null);
+  }
+};
+
+const initializeRazorpayCheckout = (order, invoice, razorpayKey) => {
+  return new Promise((resolve, reject) => {
+    const loadRazorpay = () => {
+      if (window.Razorpay) {
+        createCheckoutInstance(order, invoice, razorpayKey, resolve, reject);
+      } else {
+        // Load Razorpay script
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => createCheckoutInstance(order, invoice, razorpayKey, resolve, reject);
+        script.onerror = () => {
+          reject(new Error('Failed to load Razorpay SDK'));
+          setIsPaying(false);
+          setPayingInvoiceId(null);
+        };
+        document.body.appendChild(script);
+      }
+    };
+
+    loadRazorpay();
+  });
+};
+
+const createCheckoutInstance = (order, invoice, razorpayKey, resolve, reject) => {
+  const options = {
+    key: razorpayKey,
+    amount: order.amount,
+    currency: order.currency,
+    name: 'Invertio Solutions',
+    description: `Payment for Invoice #${invoice.id}`,
+    order_id: order.id,
+    prefill: {
+      name: currentUser.name?.trim() || 'Customer',
+      email: currentUser.email?.trim() || '',
+      contact: '' // Add if you have contact info
+    },
+    theme: {
+      color: '#3F058F'
+    },
+    handler: async function (response) {
+      try {
+        console.log('Payment successful, verifying...', response);
+        
+        const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          })
+        });
+
+        const verificationData = await verifyResponse.json();
+        console.log('Verification result:', verificationData);
+
+        if (verificationData.status === 'ok') {
+          await loadInvoices();
+          alert('Payment successful! Invoice status updated.');
+          resolve();
+        } else {
+          throw new Error('Payment verification failed');
+        }
+      } catch (error) {
+        console.error('Payment verification error:', error);
+        alert('Payment completed but verification failed. Please contact support.');
+        reject(error);
+      } finally {
+        setIsPaying(false);
+        setPayingInvoiceId(null);
+      }
+    },
+    modal: {
+      ondismiss: function () {
+        console.log('Payment modal closed by user');
+        setIsPaying(false);
+        setPayingInvoiceId(null);
+        reject(new Error('Payment cancelled'));
+      }
+    },
+    // Additional options to prevent standard_checkout
+    method: {
+      netbanking: false,
+      card: true,
+      wallet: false,
+      upi: false,
+    },
+    retry: {
+      enabled: false,
+    },
+    timeout: 900, // 15 minutes
+    remember_customer: false
+  };
+
+  try {
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } catch (error) {
+    console.error('Error opening Razorpay checkout:', error);
+    reject(error);
+    setIsPaying(false);
+    setPayingInvoiceId(null);
+  }
+};
+
+// Separate function for Razorpay checkout
+const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
+  const options = {
+    key: razorpayKey,
+    amount: order.amount,
+    currency: order.currency,
+    name: 'TaxPortal',
+    description: `Payment for Invoice ${invoice.id}`,
+    order_id: order.id,
+    prefill: {
+      name: currentUser.name || '',
+      email: currentUser.email || '',
+    },
+    theme: {
+      color: '#2563EB'
+    },
+    handler: async function (response) {
+      try {
+        console.log('Payment response:', response);
+        
+        const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          })
+        });
+
+        const data = await verifyResponse.json();
+        console.log('Verification response:', data);
+
+        if (data.status === 'ok') {
+          await loadInvoices(); // Refresh the invoices list
+          alert('Payment successful! Invoice status updated to Paid.');
+          resolve();
+        } else {
+          alert('Payment verification failed. Please contact support.');
+          reject(new Error('Verification failed'));
+        }
+      } catch (error) {
+        console.error('Verification Error:', error);
+        alert('Error verifying payment. Please contact support.');
+        reject(error);
+      }
+    },
+    modal: {
+      ondismiss: function () {
+        console.log('Payment modal dismissed');
+        reject(new Error('Payment cancelled by user'));
+      }
+    }
+  };
+
+  const rzp = new window.Razorpay(options);
+  rzp.open();
+};
   const statusOptions = [
     { value: "all", label: "All Statuses" },
     { value: "Paid", label: "Paid" },
@@ -643,115 +756,139 @@ export default function Invoices() {
           </div>
         </div>
       )}
-      {filteredInvoices.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-4"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            {statusOptions.slice(1).map((status, index, arr) => {
-              const count = invoices.filter((a) => a.status === status.value).length;
-              const total = invoices
-                .filter((a) => a.status === status.value)
-                .reduce((sum, invoice) => sum + invoice.invoiceAmount, 0);
-
-              const statusIcons = {
-                Paid: <CheckCircle className="h-5 w-5 text-green-500" />,
-                Pending: <Clock className="h-5 w-5 text-amber-500" />,
-                Overdue: <AlertCircle className="h-5 w-5 text-red-500" />,
-                Draft: <FileText className="h-5 w-5 text-blue-500" />
-              };
-
-              const statusGradients = {
-                Paid: {
-                  gradient: "bg-gradient-to-r from-emerald-500 to-emerald-600 ",
-                  from: "green",
-                  to: "green"
-                },
-                Pending: {
-                  gradient: "bg-gradient-to-r from-amber-400 to-amber-500",
-                  from: "amber",
-                  to: "amber"
-                },
-                Overdue: {
-                  gradient: "bg-gradient-to-r from-red-400 to-red-500",
-                  from: "red",
-                  to: "red"
-                },
-                Draft: {
-                  gradient: "bg-gradient-to-r from-blue-400 to-blue-500",
-                  from: "blue",
-                  to: "blue"
-                }
-              };
-
-              const IconComponent =
-                statusIcons[status.value] || (
-                  <FileText className="h-5 w-5 text-white" />
-                );
-
-              const gradientInfo =
-                statusGradients[status.value] || {
-                  gradient: "bg-gradient-to-r from-gray-400 to-gray-500",
-                  from: "gray",
-                  to: "gray"
-                };
-
-              // Conditional radius
-              const extraRadius =
-                index === 0
-                  ? "rounded-tl-2xl"
-                  : index === arr.length - 1
-                    ? "rounded-br-2xl"
-                    : "";
-
-              return (
-                <motion.div
-                  key={status.value}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() =>
-                    setFilterStatus(status.value === filterStatus ? "all" : status.value)
-                  }
-                  className={`p-2 ${gradientInfo.gradient} text-white rounded-sm  shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all ${extraRadius} relative cursor-pointer`}
-                >
-                  {/* Checkmark indicator */}
-                  {filterStatus === status.value && (
-                    <div className="absolute -top-4 -right-2">
-                      <div className={`${gradientInfo.gradient} rounded-full p-1 shadow-lg flex items-center justify-center`}>
-                        <Check className="h-5 w-5 text-white" />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-5 mb-1 w-full">
-                    {/* Gradient Border + Icon */}
-                    <div className={`flex items-center justify-center w-1/6 border-b-2 pb-2 border-${gradientInfo.from}-600`}>
-                      <div className={`p-2 rounded-full bg-gradient-to-r from-${gradientInfo.from}-600 to-${gradientInfo.to}-600 flex items-center justify-center`}>
-                        {React.cloneElement(IconComponent, { className: "h-5 w-5 text-white" })}
-                      </div>
-                    </div>
-
-                    <h3 className="text-sm font-medium text-white mb-1">
-                      {status.label}
-                    </h3>
-                  </div>
-
-                  <div>
-                    <div className="text-lg font-bold text-white pl-2 mt-2">
-                      ${total.toFixed(2)}
-                    </div>
-                  </div>
-                </motion.div>
-
-              );
-            })}
+     {filteredInvoices.length > 0 && (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.3 }}
+    className="mt-4"
+  >
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-5"> {/* Changed to 5 columns for All status */}
+      {/* All Status Card */}
+      <motion.div
+        whileHover={{ y: -4, scale: 1.02 }}
+        transition={{ duration: 0.2 }}
+        onClick={() => setFilterStatus(filterStatus === "all" ? "all" : "all")}
+        className={`p-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all rounded-tl-2xl cursor-pointer`}
+      >
+        {/* Checkmark indicator for All */}
+        {filterStatus === "all" && (
+          <div className="absolute -top-4 -right-2">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-full p-1 shadow-lg flex items-center justify-center">
+              <Check className="h-5 w-5 text-white" />
+            </div>
           </div>
-        </motion.div>
+        )}
 
-      )}
+        <div className="flex items-center gap-5 mb-1 w-full">
+          {/* Gradient Border + Icon */}
+          <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-purple-600">
+            <div className="p-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-600 flex items-center justify-center">
+              <FileText className="h-5 w-5 text-white" />
+            </div>
+          </div>
+
+          <h3 className="text-sm font-medium text-white mb-1">
+            Total Transactions
+          </h3>
+        </div>
+
+        <div>
+          <div className="text-lg font-bold text-white pl-2 mt-2">
+            {invoices.length}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Other Status Cards */}
+      {statusOptions.slice(1).map((status, index, arr) => {
+        const count = invoices.filter((a) => a.status === status.value).length;
+        const total = invoices
+          .filter((a) => a.status === status.value)
+          .reduce((sum, invoice) => sum + invoice.invoiceAmount, 0);
+
+        const statusIcons = {
+          Paid: <CheckCircle className="h-5 w-5 text-green-500" />,
+          Pending: <Clock className="h-5 w-5 text-amber-500" />,
+          Overdue: <AlertCircle className="h-5 w-5 text-red-500" />,
+          Draft: <FileText className="h-5 w-5 text-blue-500" />
+        };
+
+        const statusGradients = {
+          Paid: {
+            gradient: "bg-gradient-to-r from-emerald-500 to-emerald-600",
+            from: "green",
+            to: "green"
+          },
+          Pending: {
+            gradient: "bg-gradient-to-r from-amber-400 to-amber-500",
+            from: "amber",
+            to: "amber"
+          },
+          Overdue: {
+            gradient: "bg-gradient-to-r from-red-400 to-red-500",
+            from: "red",
+            to: "red"
+          },
+          Draft: {
+            gradient: "bg-gradient-to-r from-blue-400 to-blue-500",
+            from: "blue",
+            to: "blue"
+          }
+        };
+
+        const IconComponent = statusIcons[status.value] || <FileText className="h-5 w-5 text-white" />;
+        const gradientInfo = statusGradients[status.value] || {
+          gradient: "bg-gradient-to-r from-gray-400 to-gray-500",
+          from: "gray",
+          to: "gray"
+        };
+
+        // Conditional radius
+        const extraRadius = index === arr.length - 1 ? "rounded-br-2xl" : "";
+
+        return (
+          <motion.div
+            key={status.value}
+            whileHover={{ y: -4, scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setFilterStatus(status.value === filterStatus ? "all" : status.value)}
+            className={`p-2 ${gradientInfo.gradient} text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all ${extraRadius} relative cursor-pointer`}
+          >
+            {/* Checkmark indicator */}
+            {filterStatus === status.value && (
+              <div className="absolute -top-4 -right-2">
+                <div className={`${gradientInfo.gradient} rounded-full p-1 shadow-lg flex items-center justify-center`}>
+                  <Check className="h-5 w-5 text-white" />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-5 mb-1 w-full">
+              {/* Gradient Border + Icon */}
+              <div className={`flex items-center justify-center w-1/6 border-b-2 pb-2 border-${gradientInfo.from}-600`}>
+                <div className={`p-2 rounded-full bg-gradient-to-r from-${gradientInfo.from}-600 to-${gradientInfo.to}-600 flex items-center justify-center`}>
+                  {React.cloneElement(IconComponent, { className: "h-5 w-5 text-white" })}
+                </div>
+              </div>
+
+              <h3 className="text-sm font-medium text-white mb-1">
+                {status.label}
+              </h3>
+            </div>
+
+            <div>
+              <div className="text-lg font-bold text-white pl-2 mt-2">
+                {count}
+              </div>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  </motion.div>
+)}
+
       {/* Filters */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -803,14 +940,14 @@ export default function Invoices() {
                   </button>
                 )}
               </div>
-              {filterStatus && (
+              {filterStatus && filterStatus !== "all" && (
                 <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
                   Status: {statusOptions.find(opt => opt.value === filterStatus)?.label}
                   <button
-                    onClick={() => setFilterStatus('')}
+                    onClick={() => setFilterStatus('all')}
                     className="ml-2 text-blue-600 hover:text-blue-800"
                   >
-                    {/* <X className="w-3 h-3" /> */}
+                    <X className="w-3 h-3" />
                   </button>
                 </div>
               )}
@@ -859,7 +996,7 @@ export default function Invoices() {
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => {
-                    setFilterStatus('');
+                    setFilterStatus('all');
                     setIsFilterModalOpen(false);
                   }}
                   className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
@@ -883,7 +1020,7 @@ export default function Invoices() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-lg shadow-sm border overflow-hidden"
+        className="bg-white rounded-lg shadow-sm border overflow-hidden mt-4"
       >
         {filteredInvoices.length === 0 ? (
           <div className="p-12 text-center">
@@ -901,7 +1038,7 @@ export default function Invoices() {
   style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
 >
   {/* Scrollable Table Wrapper */}
-  <div className="min-h-[400px] h-[500px] ">
+  {/* <div className="min-h-[400px] max-h-[500px] overflow-y-auto"> */}
     <table className="min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50 sticky top-0 z-10">
         <tr>
@@ -948,7 +1085,7 @@ export default function Invoices() {
           >
             {/* SN.NO */}
             <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-              {index + 1}
+              {indexOfFirstRow + index + 1}
             </td>
 
             {/* Customer */}
@@ -1044,7 +1181,7 @@ export default function Invoices() {
         ))}
       </tbody>
     </table>
-  </div>
+  {/* </div> */}
 
   {/* Pagination */}
   <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200 bg-white">
