@@ -269,6 +269,7 @@ export default function Invoices() {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10; // ✅ default 10 rows
   const [selectedRowId, setSelectedRowId] = useState(null)
+  const [dateFilter, setDateFilter] = useState("all");
   // At the top of your component, ensure:
 
 
@@ -280,6 +281,12 @@ export default function Invoices() {
   const totalPages = Math.ceil(filteredInvoices.length / rowsPerPage);
 
   const userToken = localStorage.getItem('token')
+  const dateOptions = [
+  { value: "all", label: "All Dates" },
+  { value: "today", label: "Today" },
+  { value: "thisWeek", label: "This Week" },
+  { value: "thisMonth", label: "This Month" }
+];
 
   useEffect(() => {
     try {
@@ -351,27 +358,55 @@ export default function Invoices() {
   }
 
   const filterInvoices = () => {
-    let filtered = invoices
+  let filtered = invoices;
 
-    if (filterStatus !== "all") {
-      filtered = filtered.filter((invoice) =>
-        invoice.status.toLowerCase() === filterStatus.toLowerCase()
-      )
-    }
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (invoice) =>
-          invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          invoice.returnName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          invoice.returnType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          invoice.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          invoice.id.toString().includes(searchTerm)
-      )
-    }
-
-    setFilteredInvoices(filtered)
+  // Status filter
+  if (filterStatus !== "all") {
+    filtered = filtered.filter((invoice) =>
+      invoice.status.toLowerCase() === filterStatus.toLowerCase()
+    );
   }
+
+  // Date filter
+  if (dateFilter !== "all") {
+    const now = new Date();
+    filtered = filtered.filter((invoice) => {
+      const invoiceDate = new Date(invoice.createdAt);
+      
+      switch (dateFilter) {
+        case 'today':
+          return invoiceDate.toDateString() === now.toDateString();
+        
+        case 'thisWeek':
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - now.getDay());
+          startOfWeek.setHours(0, 0, 0, 0);
+          return invoiceDate >= startOfWeek;
+        
+        case 'thisMonth':
+          return invoiceDate.getMonth() === now.getMonth() && 
+                 invoiceDate.getFullYear() === now.getFullYear();
+        
+        default:
+          return true;
+      }
+    });
+  }
+
+  // Search filter
+  if (searchTerm) {
+    filtered = filtered.filter(
+      (invoice) =>
+        invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.returnName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.returnType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.id.toString().includes(searchTerm)
+    );
+  }
+
+  setFilteredInvoices(filtered);
+};
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -756,20 +791,20 @@ const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
           </div>
         </div>
       )}
-     {filteredInvoices.length > 0 && (
+ {filteredInvoices.length > 0 && (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.3 }}
     className="mt-4"
   >
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-5"> {/* Changed to 5 columns for All status */}
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
       {/* All Status Card */}
       <motion.div
         whileHover={{ y: -4, scale: 1.02 }}
         transition={{ duration: 0.2 }}
         onClick={() => setFilterStatus(filterStatus === "all" ? "all" : "all")}
-        className={`p-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all rounded-tl-2xl cursor-pointer`}
+        className={`p-2 bg-gradient-to-r from-purple-500 to-purple-600 relative text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all rounded-tl-2xl cursor-pointer`}
       >
         {/* Checkmark indicator for All */}
         {filterStatus === "all" && (
@@ -889,131 +924,161 @@ const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
   </motion.div>
 )}
 
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-lg shadow-sm border p-1 mt-5 "
-      >
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          {/* Search Input */}
-          <div className="w-full">
-            <div className="flex items-center w-full gap-3">
-              {/* Search Box */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search returns by ID, type, status, or name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Filter Button */}
-              <div className="px-4 py-3 bg-gray-200 p-1 rounded-md">
-                <button
-                  onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
-                  className="flex items-center justify-center gap-1 text-black hover:text-gray-600"
-                >
-                  <Filter className="w-4 h-4" />
-                  <span className="hidden sm:inline text-black">Filters</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Active Filters Display */}
-            <div className="flex flex-wrap gap-2 mt-2">
-              <div className="pr-1 border-r-2 pl-2">
-                <h1 className="text-gray-700 font-bold">Applied Filters</h1>
-                {(searchTerm || filterStatus !== "all") && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm("")
-                      setFilterStatus("all")
-                    }}
-                    className=" text-sm text-orange-600 hover:text-orange-700 transition-colors"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-              {filterStatus && filterStatus !== "all" && (
-                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
-                  Status: {statusOptions.find(opt => opt.value === filterStatus)?.label}
-                  <button
-                    onClick={() => setFilterStatus('all')}
-                    className="ml-2 text-blue-600 hover:text-blue-800"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
+{/* Filters */}
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.1 }}
+  className="bg-white rounded-lg shadow-sm border p-1 mt-5 "
+>
+  <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+    {/* Search Input */}
+    <div className="w-full">
+      <div className="flex items-center w-full gap-3">
+        {/* Search Box */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Search returns by ID, type, status, or name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
 
-        {/* Filter Modal */}
-        {isFilterModalOpen && (
-          <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+        {/* Filter Button */}
+        <div className="px-4 py-3 bg-gray-200 p-1 rounded-md">
+          <button
+            onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+            className="flex items-center justify-center gap-1 text-black hover:text-gray-600"
+          >
+            <Filter className="w-4 h-4" />
+            <span className="hidden sm:inline text-black">Filters</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Active Filters Display */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        <div className="pr-1 border-r-2 pl-2">
+          <h1 className="text-gray-700 font-bold">Applied Filters</h1>
+          {(searchTerm || filterStatus !== "all" || dateFilter !== "all") && (
+            <button
+              onClick={() => {
+                setSearchTerm("")
+                setFilterStatus("all")
+                setDateFilter("all")
+              }}
+              className=" text-sm text-orange-600 hover:text-orange-700 transition-colors"
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Filters</h3>
-                <button
-                  onClick={() => setIsFilterModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Add more filter options here as needed */}
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setFilterStatus('all');
-                    setIsFilterModalOpen(false);
-                  }}
-                  className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-                >
-                  Clear All
-                </button>
-                <button
-                  onClick={() => setIsFilterModalOpen(false)}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </motion.div>
+              Clear all
+            </button>
+          )}
+        </div>
+        {filterStatus && filterStatus !== "all" && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
+            Status: {statusOptions.find(opt => opt.value === filterStatus)?.label}
+            <button
+              onClick={() => setFilterStatus('all')}
+              className="ml-2 text-blue-600 hover:text-blue-800"
+            >
+              <X className="w-3 h-3" />
+            </button>
           </div>
         )}
+        {dateFilter && dateFilter !== "all" && (
+          <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center">
+            Date: {dateOptions.find(opt => opt.value === dateFilter)?.label}
+            <button
+              onClick={() => setDateFilter('all')}
+              className="ml-2 text-green-600 hover:text-green-800"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {/* Filter Modal */}
+  {isFilterModalOpen && (
+    <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Filters</h3>
+          <button
+            onClick={() => setIsFilterModalOpen(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {statusOptions.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Date</label>
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {dateOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={() => {
+              setFilterStatus('all');
+              setDateFilter('all');
+              setIsFilterModalOpen(false);
+            }}
+            className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+          >
+            Clear All
+          </button>
+          <button
+            onClick={() => setIsFilterModalOpen(false)}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+          >
+            Apply Filters
+          </button>
+        </div>
       </motion.div>
+    </div>
+  )}
+</motion.div>
+
+      {/* Filters */}
+    
 
       {/* Invoices Table */}
       <motion.div

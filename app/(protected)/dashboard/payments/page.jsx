@@ -507,9 +507,9 @@ export default function Payments() {
           )}
           {appliedFilters.dateRange !== 'All' && (
             <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full">
-              Date: {appliedFilters.dateRange === '7' ? 'Last 7 Days' :
-                appliedFilters.dateRange === '30' ? 'Last 30 Days' :
-                  appliedFilters.dateRange === '90' ? 'Last 90 Days' : appliedFilters.dateRange}
+              Date: {appliedFilters.dateRange === '7' ? 'This Week' :
+                appliedFilters.dateRange === '30' ? 'This Month' :
+                  appliedFilters.dateRange === '90' ? 'This Year' : appliedFilters.dateRange}
               <button
                 onClick={() => removeFilter('dateRange')}
                 className="ml-1 text-blue-600 hover:text-blue-800"
