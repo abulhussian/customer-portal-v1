@@ -1382,14 +1382,16 @@ const Returns = () => {
                         </div>
                         <div>
                           <nav
-                            className="inline-flex border border-gray-300 rounded-md overflow-hidden"
+                            className=" flex items-center space-x-2  rounded-md"
                             aria-label="Pagination"
                           >
                             {/* Previous Button */}
                             <button
                               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                               disabled={currentPage === 1}
-                              className="flex items-center px-3 py-1 text-sm border-r border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+          bg-white text-gray-700 hover:bg-gray-100 
+          disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <ChevronLeft className="h-4 w-4 mr-1" />
                               <span>Prev</span>
@@ -1411,7 +1413,7 @@ const Returns = () => {
                                   <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-1 text-sm border-r border-gray-300 ${currentPage === page
+                                    className={`px-3 py-1 text-sm border-r rounded-md border-gray-300 ${currentPage === page
                                       ? "bg-[#3F058F] text-white font-semibold"
                                       : "bg-white text-gray-700 hover:bg-gray-100"
                                       }`}
@@ -1430,7 +1432,9 @@ const Returns = () => {
                                 )
                               }
                               disabled={currentPage === Math.ceil(filteredReturns.length / 10)}
-                              className="flex items-center px-3 py-1 text-sm bg-white text-gray-700 hover:bg-gray-100"
+                              className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+          bg-white text-gray-700 hover:bg-gray-100 
+          disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <span>Next</span>
                               <ChevronRight className="h-4 w-4 ml-1" />

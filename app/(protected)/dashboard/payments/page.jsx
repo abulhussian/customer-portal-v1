@@ -428,99 +428,158 @@ export default function Payments() {
 
     {/* Search and Filter Bar */}
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-3">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search payments..."
-            value={filters.searchQuery}
-            onChange={handleSearchChange}
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-          />
+  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+    <div className="relative flex-1">
+      <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+      <input
+        type="text"
+        placeholder="Search payments..."
+        value={filters.searchQuery}
+        onChange={handleSearchChange}
+        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+      />
+    </div>
+
+    <button
+      onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+      className="flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+    >
+      <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-1" />
+      <span>Filters</span>
+      {activeFiltersCount > 0 && (
+        <span className="ml-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          {activeFiltersCount}
+        </span>
+      )}
+    </button>
+  </div>
+
+  {/* Applied Filters */}
+  <div className='flex flex-col sm:flex-row gap-2 mt-4'>
+    {(filters.searchQuery || filters.status !== 'All' || filters.dateRange !== 'All') && (
+      <div className="flex flex-col border-r-0 sm:border-r-2 pr-0 sm:pr-2 items-start">
+        <h1 className="text-gray-700 font-bold text-sm sm:text-base">Applied Filters</h1>
+        <button
+          onClick={() => {
+            setFilters({
+              searchQuery: '',
+              status: 'All',
+              dateRange: 'All'
+            });
+            setAppliedFilters({
+              status: 'All',
+              dateRange: 'All'
+            });
+          }}
+          className="text-xs sm:text-sm text-orange-600 hover:text-orange-700 transition-colors"
+        >
+          Clear all
+        </button>
+      </div>
+    )}
+
+    {/* Applied Filters Display */}
+    <div className="flex flex-wrap gap-2">
+      {filters.searchQuery && (
+        <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full">
+          Search: {filters.searchQuery}
+          <button
+            onClick={() => {
+              setFilters({ ...filters, searchQuery: '' });
+              setAppliedFilters({ ...appliedFilters });
+            }}
+            className="ml-1 text-blue-600 hover:text-blue-800"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </span>
+      )}
+      {appliedFilters.status !== 'All' && (
+        <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full">
+          Status: {appliedFilters.status}
+          <button
+            onClick={() => removeFilter('status')}
+            className="ml-1 text-blue-600 hover:text-blue-800"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </span>
+      )}
+      {appliedFilters.dateRange !== 'All' && (
+        <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full">
+          Date: {getDateRangeDisplayName(appliedFilters.dateRange)}
+          <button
+            onClick={() => removeFilter('dateRange')}
+            className="ml-1 text-blue-600 hover:text-blue-800"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </span>
+      )}
+    </div>
+  </div>
+</div>
+
+{/* Filter Modal */}
+{isFilterModalOpen && (
+  <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <h2 className="text-lg font-medium text-gray-900 mb-4">Filter Payments</h2>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            value={filters.status}
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+          >
+            <option value="All">All Statuses</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+          </select>
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+          <select
+            value={filters.dateRange}
+            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+          >
+            <option value="All">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
         <button
-          onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
-          className="flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+          onClick={handleFilterReset}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-1" />
-          <span>Filters</span>
-          {activeFiltersCount > 0 && (
-            <span className="ml-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              {activeFiltersCount}
-            </span>
-          )}
+          Reset
+        </button>
+        <button
+          onClick={handleFilterApply}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Apply Filters
         </button>
       </div>
 
-      {/* Applied Filters */}
-      <div className='flex flex-col sm:flex-row gap-2 mt-4'>
-        {(filters.searchQuery || filters.status !== 'All' || filters.dateRange !== 'All') && (
-          <div className="flex flex-col border-r-0 sm:border-r-2 pr-0 sm:pr-2 items-start">
-            <h1 className="text-gray-700 font-bold text-sm sm:text-base">Applied Filters</h1>
-            <button
-              onClick={() => {
-                setFilters({
-                  searchQuery: '',
-                  status: 'All',
-                  dateRange: 'All'
-                });
-                setAppliedFilters({
-                  status: 'All',
-                  dateRange: 'All'
-                });
-              }}
-              className="text-xs sm:text-sm text-orange-600 hover:text-orange-700 transition-colors"
-            >
-              Clear all
-            </button>
-          </div>
-        )}
-
-        {/* Applied Filters Display */}
-        <div className="flex flex-wrap gap-2">
-          {filters.searchQuery && (
-            <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full">
-              Search: {filters.searchQuery}
-              <button
-                onClick={() => {
-                  setFilters({ ...filters, searchQuery: '' });
-                  setAppliedFilters({ ...appliedFilters });
-                }}
-                className="ml-1 text-blue-600 hover:text-blue-800"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {appliedFilters.status !== 'All' && (
-            <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full">
-              Status: {appliedFilters.status}
-              <button
-                onClick={() => removeFilter('status')}
-                className="ml-1 text-blue-600 hover:text-blue-800"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {appliedFilters.dateRange !== 'All' && (
-            <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full">
-              Date: {appliedFilters.dateRange === '7' ? 'This Week' :
-                appliedFilters.dateRange === '30' ? 'This Month' :
-                  appliedFilters.dateRange === '90' ? 'This Year' : appliedFilters.dateRange}
-              <button
-                onClick={() => removeFilter('dateRange')}
-                className="ml-1 text-blue-600 hover:text-blue-800"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-        </div>
-      </div>
+      <button
+        onClick={() => setIsFilterModalOpen(false)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+      >
+        <X className="w-5 h-5" />
+      </button>
     </div>
+  </div>
+)}
 
     {/* Filter Modal */}
     {isFilterModalOpen && (
@@ -678,6 +737,56 @@ export default function Payments() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200 bg-white">
+          <p className="text-sm text-gray-600">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredPayments.length)} of{" "}
+            {filteredPayments.length} results
+          </p>
+
+          <div className="flex items-center space-x-2">
+            {/* Previous */}
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+                bg-white text-gray-700 hover:bg-gray-100 
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </button>
+
+            {/* Page Numbers */}
+            {Array.from({ length: Math.ceil(filteredPayments.length / itemsPerPage) }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-3 py-1 text-sm border rounded-md transition-colors 
+                  ${
+                    currentPage === i + 1
+                      ? "bg-[#3F058F] text-white border-[#3F058F]"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            {/* Next */}
+            <button
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={currentPage >= Math.ceil(filteredPayments.length / itemsPerPage)}
+              className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+                bg-white text-gray-700 hover:bg-gray-100 
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     )}

@@ -1105,7 +1105,7 @@ const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
   {/* Scrollable Table Wrapper */}
   {/* <div className="min-h-[400px] max-h-[500px] overflow-y-auto"> */}
     <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50 sticky top-0 z-10">
+      <thead className="bg-gray-200 sticky top-0 z-10">
         <tr>
           <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
             SN.NO
@@ -1249,7 +1249,7 @@ const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
   {/* </div> */}
 
   {/* Pagination */}
-  <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200 bg-white">
+  <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200 bg-gray-200">
     <p className="text-sm text-gray-600">
       Showing {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, filteredInvoices.length)} of{" "}
       {filteredInvoices.length} results
