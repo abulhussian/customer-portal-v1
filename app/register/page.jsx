@@ -220,7 +220,7 @@ const Register = () => {
       >
         <div className="shadow-2xl border-0 backdrop-blur-sm bg-white/95 rounded-2xl border border-gray-200 overflow-hidden">
           {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-5 px-6 text-center">
+          <div className="bg-white text-white py-5 px-6 text-center">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -229,8 +229,8 @@ const Register = () => {
             >
               <img src="/favicon.svg" alt="logo" className="w-8 h-8" />
             </motion.div>
-            <h2 className="text-2xl font-bold">Create Account</h2>
-            <p className="text-blue-100 mt-1 text-sm">Join our business management platform</p>
+            <h2 className="text-2xl font-bold text-[#05164d]">Create Account</h2>
+            <p className="text-[#05164d] mt-1 text-sm">Join our business management platform</p>
           </div>
 
           <div className="space-y-4 p-6">
