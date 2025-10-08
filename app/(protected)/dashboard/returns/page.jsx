@@ -101,6 +101,11 @@ const Returns = () => {
   const [typeFilter, setTypeFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
 
+    // Temporary filter states for the modal (not applied until user clicks Apply)
+  const [tempStatusFilter, setTempStatusFilter] = useState("all")
+  const [tempTypeFilter, setTempTypeFilter] = useState("all")
+  const [tempDateFilter, setTempDateFilter] = useState("all")
+
   // CustomerDetail state
   const [selectedReturnId, setSelectedReturnId] = useState(null)
   const [returnDetails, setReturnDetails] = useState(null)
@@ -132,6 +137,16 @@ const Returns = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   const [selectedRowId, setSelectedRowId] = useState(null);
+
+
+ useEffect(() => {
+    if (isFilterModalOpen) {
+      setTempStatusFilter(statusFilter)
+      setTempTypeFilter(typeFilter)
+      setTempDateFilter(dateFilter)
+    }
+  }, [isFilterModalOpen, statusFilter, typeFilter, dateFilter])
+
 
   const handleRowClick = (id) => {
     setSelectedRowId(id);
@@ -184,6 +199,7 @@ const Returns = () => {
       }))
       console.log(data)
 
+ 
       setReturns(transformedReturns)
     } catch (error) {
       console.error("Error fetching returns:", error)
@@ -193,6 +209,22 @@ const Returns = () => {
       setLoading(false)
     }
   }, [userId, refreshTrigger])
+
+   const applyFilters = () => {
+    setStatusFilter(tempStatusFilter)
+    setTypeFilter(tempTypeFilter)
+    setDateFilter(tempDateFilter)
+    setIsFilterModalOpen(false)
+    setCurrentPage(1) // Reset to first page when filters change
+  }
+   // Clear all filters
+  const clearAllFilters = () => {
+    setSearchTerm("")
+    setStatusFilter("all")
+    setTypeFilter("all")
+    setDateFilter("all")
+    setCurrentPage(1)
+  }
 
   const handleAddReturn = (newReturn) => {
     const returnWithId = {
@@ -524,27 +556,68 @@ const Returns = () => {
   const typeOptions = ["all", ...new Set(returns.map(item => item.type))];
 
   // Filter returns based on search term and filters
-  const filteredReturns = returns.filter((returnItem) => {
-    // Text search - search across multiple fields
+  // Filter returns based on search term and APPLIED filters
+const filteredReturns = returns.filter((returnItem) => {
+  const searchTermLower = searchTerm.toLowerCase();
+  const matchesSearch =
+    returnItem.id.toString().toLowerCase().includes(searchTermLower) ||
+    returnItem.type?.toLowerCase().includes(searchTermLower) ||
+    returnItem.status?.toLowerCase().includes(searchTermLower) ||
+    returnItem.name?.toLowerCase().includes(searchTermLower);
 
-    const searchTermLower = searchTerm.toLowerCase();
-    const matchesSearch =
-      returnItem.id.toString().toLowerCase().includes(searchTermLower) ||
-      returnItem.type?.toLowerCase().includes(searchTermLower) ||
-      returnItem.status?.toLowerCase().includes(searchTermLower) ||
-      returnItem.name?.toLowerCase().includes(searchTermLower);
+  // Use the APPLIED filters (not temporary ones)
+  const matchesStatus = statusFilter === "all" || returnItem.status === statusFilter;
+  const matchesType = typeFilter === "all" || returnItem.type === typeFilter;
+  
+  // Date filter implementation
+  let matchesDate = true;
+  if (dateFilter !== "all") {
+    const now = new Date();
+    const returnDate = new Date(returnItem.createdDate); // Use createdDate from your return object
+    
+    // Set to start of today (00:00:00)
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    
+    // Set to end of today (23:59:59.999)
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
 
-    // Status filter
-    const matchesStatus = statusFilter === "all" || returnItem.status === statusFilter;
+    switch (dateFilter) {
+      case 'today':
+        // Check if return date is between start and end of today
+        matchesDate = returnDate >= startOfToday && returnDate <= endOfToday;
+        break;
 
-    // Type filter
-    const matchesType = typeFilter === "all" || returnItem.type === typeFilter;
+      case 'thisWeek':
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        
+        matchesDate = returnDate >= startOfWeek && returnDate <= endOfWeek;
+        break;
 
-    // Date filter (simplified implementation)
-    const matchesDate = dateFilter === "all" || true; // Add date filtering logic as needed
+      case 'thisMonth':
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        endOfMonth.setHours(23, 59, 59, 999);
+        
+        matchesDate = returnDate >= startOfMonth && returnDate <= endOfMonth;
+        break;
 
-    return matchesSearch && matchesStatus && matchesType && matchesDate;
-  });
+      default:
+        matchesDate = true;
+    }
+  }
+
+  return matchesSearch && matchesStatus && matchesType && matchesDate;
+});
   const currentItems = filteredReturns.slice(indexOfFirstItem, indexOfLastItem);
 
   const detailedReturns = returnDetails
@@ -907,16 +980,6 @@ const Returns = () => {
           </section>
         )}
       </div>
-    ) : filteredReturns.length === 0 ? (
-      <div className="p-12 text-center">
-        <div className="text-6xl mb-4">📝</div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Returns Found</h3>
-        <p className="text-gray-600">
-          {searchTerm || filterStatus !== "all"
-            ? "Try adjusting your search or filter criteria."
-            : "No invoices available."}
-        </p>
-      </div>
     ) : (
       // Main Returns List View
       <motion.div
@@ -951,7 +1014,7 @@ const Returns = () => {
            bg-gradient-to-br from-emerald-400 to-green-500 text-white relative cursor-pointer"
           >
             {statusFilter === "in review" && (
-              <div className="absolute -top-2 right-2">
+              <div className="absolute -top-4 right-2">
                 <div className="bg-gradient-to-br from-emerald-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
                   <Check className="h-5 w-5 text-white" />
                 </div>
@@ -979,7 +1042,7 @@ const Returns = () => {
              bg-gradient-to-br from-amber-300 to-orange-400 text-white relative cursor-pointer"
           >
             {statusFilter === "initial request" && (
-              <div className="absolute -top-2 right-2">
+              <div className="absolute -top-4 right-2">
                 <div className="bg-gradient-to-br from-amber-300 to-orange-400 rounded-full p-1 shadow-lg flex items-center justify-center">
                   <Check className="h-5 w-5 text-white" />
                 </div>
@@ -1007,7 +1070,7 @@ const Returns = () => {
              bg-gradient-to-br from-teal-400 to-emerald-500 text-white relative cursor-pointer"
           >
             {statusFilter === "document verified" && (
-              <div className="absolute -top-2 right-2">
+              <div className="absolute -top-4 right-2">
                 <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full p-1 shadow-lg flex items-center justify-center">
                   <Check className="h-5 w-5 text-white" />
                 </div>
@@ -1035,7 +1098,7 @@ const Returns = () => {
              bg-gradient-to-br from-violet-400 to-purple-500 text-white relative cursor-pointer"
           >
             {statusFilter === "in preparation" && (
-              <div className="absolute -top-2 right-2">
+              <div className="absolute -top-4 right-2">
                 <div className="bg-gradient-to-br from-violet-400 to-purple-500 rounded-full p-1 shadow-lg flex items-center justify-center">
                   <Check className="h-5 w-5 text-white" />
                 </div>
@@ -1063,7 +1126,7 @@ const Returns = () => {
              bg-gradient-to-br from-slate-400 to-gray-500 text-white relative cursor-pointer"
           >
             {statusFilter === "ready to file" && (
-              <div className="absolute -top-2 right-2">
+              <div className="absolute -top-4 right-2">
                 <div className="bg-gradient-to-br from-slate-400 to-gray-500 rounded-full p-1 shadow-lg flex items-center justify-center">
                   <Check className="h-5 w-5 text-white" />
                 </div>
@@ -1091,7 +1154,7 @@ const Returns = () => {
              bg-gradient-to-br from-lime-400 to-green-500 text-white relative cursor-pointer"
           >
             {statusFilter === "filed return" && (
-              <div className="absolute -top-2 right-2">
+              <div className="absolute -top-4 right-2">
                 <div className="bg-gradient-to-br from-lime-400 to-green-500 rounded-full p-1 shadow-lg flex items-center justify-center">
                   <Check className="h-5 w-5 text-white" />
                 </div>
@@ -1148,12 +1211,7 @@ const Returns = () => {
                 <h1 className="text-gray-700 font-bold">Applied Filters</h1>
                 {(searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
                   <button
-                    onClick={() => {
-                      setSearchTerm("")
-                      setStatusFilter("all")
-                      setTypeFilter("all")
-                      setDateFilter("all")
-                    }}
+                    onClick={clearAllFilters}
                     className="text-sm text-orange-600 hover:text-orange-700 transition-colors"
                   >
                     Clear all
@@ -1228,8 +1286,8 @@ const Returns = () => {
                       Status
                     </label>
                     <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
+                      value={tempStatusFilter}
+                      onChange={(e) => setTempStatusFilter(e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="all">All Statuses</option>
@@ -1247,8 +1305,8 @@ const Returns = () => {
                       Type
                     </label>
                     <select
-                      value={typeFilter}
-                      onChange={(e) => setTypeFilter(e.target.value)}
+                      value={tempTypeFilter}
+                      onChange={(e) => setTempTypeFilter(e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="all">All Types</option>
@@ -1266,8 +1324,8 @@ const Returns = () => {
                       Date
                     </label>
                     <select
-                      value={dateFilter}
-                      onChange={(e) => setDateFilter(e.target.value)}
+                      value={tempDateFilter}
+                      onChange={(e) => setTempDateFilter(e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="all">All Dates</option>
@@ -1282,16 +1340,16 @@ const Returns = () => {
                 <div className="flex justify-end space-x-3 p-6 pt-0">
                   <button
                     onClick={() => {
-                      setStatusFilter("all");
-                      setTypeFilter("all");
-                      setDateFilter("all");
+                      setTempStatusFilter("all");
+                      setTempTypeFilter("all");
+                      setTempDateFilter("all");
                     }}
                     className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                   >
                     Clear all
                   </button>
                   <button
-                    onClick={() => setIsFilterModalOpen(false)}
+                    onClick={applyFilters}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                   >
                     Apply Filters
@@ -1306,6 +1364,17 @@ const Returns = () => {
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="">
             <div className="min-h-[400px] overflow-y-auto">
+              {filteredReturns.length === 0 ? (
+      <div className="p-12 text-center">
+        <div className="text-6xl mb-4">📝</div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Returns Found</h3>
+        <p className="text-gray-600">
+          {searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all"
+            ? "Try adjusting your search or filter criteria."
+            : "No invoices available."}
+        </p>
+      </div>
+    ) : (
               <table className="min-w-full divide-y divide-gray-200 text-center">
                 <thead className="bg-gray-200 sticky top-0 rounded-md">
                   <tr>
@@ -1332,7 +1401,9 @@ const Returns = () => {
                     </th>
                   </tr>
                 </thead>
+                
                 <tbody className="bg-white divide-y divide-gray-200 text-center">
+                  
                   {currentItems.map((returnItem, index) => (
                     <tr
                       key={returnItem.id}
@@ -1340,6 +1411,7 @@ const Returns = () => {
                       className={`transition-all cursor-pointer
                         ${selectedRowId === returnItem.id ? "bg-purple-100 shadow-lg" : "hover:shadow-md hover:bg-gray-50"}
                       `}
+
                     >
                       <td className="text-sm font-medium text-gray-900 px-4 py-3">{index + 1}</td>
                       <td className="px-2 py-3 hidden sm:table-cell text-sm font-medium text-gray-900">{returnItem.name}</td>
@@ -1370,6 +1442,7 @@ const Returns = () => {
                   ))}
                 </tbody>
               </table>
+              )}
               
               {/* Pagination Controls */}
               <div className="bg-gray-200 rounded-md px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 sticky bottom-0 z-10">

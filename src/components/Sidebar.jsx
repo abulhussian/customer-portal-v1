@@ -93,7 +93,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4  ">
           
           {/* Close button (mobile) */}
           <Button
@@ -147,7 +147,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
         </div>
 
         {/* Bottom Section - Collapse Button and Sign Out */}
-        <div className="flex items-center justify-between mt-auto border-t border-white/20 p-4 w-full relative">
+        <div className="flex items-center justify-between mt-auto  p-4 w-full relative">
           {/* Sign Out */}
           {currentUser && (
             <Button
