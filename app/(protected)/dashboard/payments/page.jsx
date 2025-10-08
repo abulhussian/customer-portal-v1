@@ -364,7 +364,7 @@ export default function Payments() {
         </div>
 
         {/* Summary Cards - Responsive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 ">
           {/* Paid Transactions Card (Top Right Curve) */}
           <motion.div
             whileHover={{ y: -3 }}
@@ -379,7 +379,7 @@ export default function Payments() {
               }
             }}
             className="relative rounded-tl-2xl rounded-sm p-2 shadow-md hover:shadow-lg transition-shadow 
-                 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white cursor-pointer"
+                 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white cursor-pointer mt-2"
           >
             {/* Tick Indicator */}
             {filters.status === "paid" && (

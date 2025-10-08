@@ -852,7 +852,7 @@ if (dateFilter !== "all") {
                 whileHover={{ y: -4, scale: 1.02 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => setFilterStatus(filterStatus === "all" ? "all" : "all")}
-                className={`p-2 bg-gradient-to-r from-purple-500 to-purple-600 relative text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all rounded-tl-2xl cursor-pointer`}
+                className={`p-2 bg-gradient-to-r from-purple-500 to-purple-600 relative text-white mt-2 rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all rounded-tl-2xl cursor-pointer`}
               >
                 {/* Checkmark indicator for All */}
                 {filterStatus === "all" && (

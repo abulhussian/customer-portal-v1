@@ -1375,6 +1375,7 @@ const filteredReturns = returns.filter((returnItem) => {
         </p>
       </div>
     ) : (
+      <>
               <table className="min-w-full divide-y divide-gray-200 text-center">
                 <thead className="bg-gray-200 sticky top-0 rounded-md">
                   <tr>
@@ -1442,7 +1443,7 @@ const filteredReturns = returns.filter((returnItem) => {
                   ))}
                 </tbody>
               </table>
-              )}
+              
               
               {/* Pagination Controls */}
               <div className="bg-gray-200 rounded-md px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 sticky bottom-0 z-10">
@@ -1518,6 +1519,8 @@ const filteredReturns = returns.filter((returnItem) => {
                   </div>
                 </div>
               </div>
+              </>
+              )}
             </div>
           </div>
         </div>
