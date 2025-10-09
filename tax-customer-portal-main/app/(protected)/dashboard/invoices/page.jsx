@@ -269,9 +269,13 @@ export default function Invoices() {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10; // ✅ default 10 rows
   const [selectedRowId, setSelectedRowId] = useState(null)
+  const [dateFilter, setDateFilter] = useState("all");
   // At the top of your component, ensure:
 
 
+// NEW: State for temporary filter values in modal
+const [tempFilterStatus, setTempFilterStatus] = useState("all");
+  const [tempDateFilter, setTempDateFilter] = useState("all");
 
   // Calculate pagination values
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -280,6 +284,12 @@ export default function Invoices() {
   const totalPages = Math.ceil(filteredInvoices.length / rowsPerPage);
 
   const userToken = localStorage.getItem('token')
+  const dateOptions = [
+    { value: "all", label: "All Dates" },
+    { value: "today", label: "Today" },
+    { value: "thisWeek", label: "This Week" },
+    { value: "thisMonth", label: "This Month" }
+  ];
 
   useEffect(() => {
     try {
@@ -313,7 +323,7 @@ export default function Invoices() {
   useEffect(() => {
     filterInvoices()
     setCurrentPage(1); // Reset to first page when filters change
-  }, [invoices, filterStatus, searchTerm])
+  }, [invoices, filterStatus, searchTerm,dateFilter])
 
   const loadInvoices = async () => {
     try {
@@ -351,14 +361,63 @@ export default function Invoices() {
   }
 
   const filterInvoices = () => {
-    let filtered = invoices
+    let filtered = invoices;
 
+    // Status filter
     if (filterStatus !== "all") {
       filtered = filtered.filter((invoice) =>
         invoice.status.toLowerCase() === filterStatus.toLowerCase()
-      )
+      );
     }
 
+    
+   // Date filter
+if (dateFilter !== "all") {
+  const now = new Date();
+  
+  // Set to start of today (00:00:00)
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  
+  // Set to end of today (23:59:59.999)
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 59, 999);
+
+  filtered = filtered.filter((invoice) => {
+    const invoiceDate = new Date(invoice.createdAt);
+
+    switch (dateFilter) {
+      case 'today':
+        // Check if invoice date is between start and end of today
+        return invoiceDate >= startOfToday && invoiceDate <= endOfToday;
+
+      case 'thisWeek':
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        
+        return invoiceDate >= startOfWeek && invoiceDate <= endOfWeek;
+
+      case 'thisMonth':
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        endOfMonth.setHours(23, 59, 59, 999);
+        
+        return invoiceDate >= startOfMonth && invoiceDate <= endOfMonth;
+
+      default:
+        return true;
+    }
+  });
+}
+
+    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (invoice) =>
@@ -367,11 +426,35 @@ export default function Invoices() {
           invoice.returnType.toLowerCase().includes(searchTerm.toLowerCase()) ||
           invoice.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
           invoice.id.toString().includes(searchTerm)
-      )
+      );
     }
 
-    setFilteredInvoices(filtered)
-  }
+    setFilteredInvoices(filtered);
+  };
+
+   // NEW: Function to apply filters from modal
+  const applyFilters = () => {
+    setFilterStatus(tempFilterStatus);
+    setDateFilter(tempDateFilter);
+    setIsFilterModalOpen(false);
+  };
+
+  // NEW: Function to handle opening filter modal
+  const handleOpenFilterModal = () => {
+    setTempFilterStatus(filterStatus);
+    setTempDateFilter(dateFilter);
+    setIsFilterModalOpen(true);
+  };
+
+  // NEW: Function to clear all filters
+  const clearAllFilters = () => {
+    setTempFilterStatus("all");
+    setTempDateFilter("all");
+    setFilterStatus("all");
+    setDateFilter("all");
+    setSearchTerm("");
+    setIsFilterModalOpen(false);
+  };
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -402,232 +485,232 @@ export default function Invoices() {
     }
   };
 
- const payNow = async (invoice) => {
-  setIsPaying(true);
-  setPayingInvoiceId(invoice.id);
+  const payNow = async (invoice) => {
+    setIsPaying(true);
+    setPayingInvoiceId(invoice.id);
 
-  try {
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    if (!razorpayKey) {
-      throw new Error('Payment gateway configuration error.');
-    }
+    try {
+      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      if (!razorpayKey) {
+        throw new Error('Payment gateway configuration error.');
+      }
 
-    const totalAmount = invoice.invoiceAmount ;
-    
-    const requestBody = {
-      amount: totalAmount,
-      currency: 'USD',
-      receipt: `rcpt_${invoice.id}_${Date.now()}`,
-      notes: {
+      const totalAmount = invoice.invoiceAmount;
+
+      const requestBody = {
+        amount: totalAmount,
+        currency: 'USD',
+        receipt: `rcpt_${invoice.id}_${Date.now()}`,
+        notes: {
+          invoice_id: invoice.id,
+          customer_name: invoice.customerName,
+          customer_id: invoice.customerId
+        },
         invoice_id: invoice.id,
-        customer_name: invoice.customerName,
-        customer_id: invoice.customerId
-      },
-      invoice_id: invoice.id,
-      createdby_type: currentUser.role,
-      createdby_id: currentUser.id
-    };
+        createdby_type: currentUser.role,
+        createdby_id: currentUser.id
+      };
 
-    console.log('Creating order for amount:', totalAmount);
+      console.log('Creating order for amount:', totalAmount);
 
-    const response = await fetch(`${BASE_URL}/api/create-order`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        "Authorization": `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(requestBody)
-    });
+      const response = await fetch(`${BASE_URL}/api/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(requestBody)
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const order = await response.json();
+      console.log('Order created successfully:', order.id);
+
+      // Initialize Razorpay checkout
+      await initializeRazorpayCheckout(order, invoice, razorpayKey);
+
+    } catch (error) {
+      console.error('Payment initiation error:', error);
+      alert(error.message || 'Error initiating payment. Please try again.');
+      setIsPaying(false);
+      setPayingInvoiceId(null);
     }
+  };
 
-    const order = await response.json();
-    console.log('Order created successfully:', order.id);
+  const initializeRazorpayCheckout = (order, invoice, razorpayKey) => {
+    return new Promise((resolve, reject) => {
+      const loadRazorpay = () => {
+        if (window.Razorpay) {
+          createCheckoutInstance(order, invoice, razorpayKey, resolve, reject);
+        } else {
+          // Load Razorpay script
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.async = true;
+          script.onload = () => createCheckoutInstance(order, invoice, razorpayKey, resolve, reject);
+          script.onerror = () => {
+            reject(new Error('Failed to load Razorpay SDK'));
+            setIsPaying(false);
+            setPayingInvoiceId(null);
+          };
+          document.body.appendChild(script);
+        }
+      };
 
-    // Initialize Razorpay checkout
-    await initializeRazorpayCheckout(order, invoice, razorpayKey);
+      loadRazorpay();
+    });
+  };
 
-  } catch (error) {
-    console.error('Payment initiation error:', error);
-    alert(error.message || 'Error initiating payment. Please try again.');
-    setIsPaying(false);
-    setPayingInvoiceId(null);
-  }
-};
+  const createCheckoutInstance = (order, invoice, razorpayKey, resolve, reject) => {
+    const options = {
+      key: razorpayKey,
+      amount: order.amount,
+      currency: order.currency,
+      name: 'Invertio Solutions',
+      description: `Payment for Invoice #${invoice.id}`,
+      order_id: order.id,
+      prefill: {
+        name: currentUser.name?.trim() || 'Customer',
+        email: currentUser.email?.trim() || '',
+        contact: '' // Add if you have contact info
+      },
+      theme: {
+        color: '#3F058F'
+      },
+      handler: async function (response) {
+        try {
+          console.log('Payment successful, verifying...', response);
 
-const initializeRazorpayCheckout = (order, invoice, razorpayKey) => {
-  return new Promise((resolve, reject) => {
-    const loadRazorpay = () => {
-      if (window.Razorpay) {
-        createCheckoutInstance(order, invoice, razorpayKey, resolve, reject);
-      } else {
-        // Load Razorpay script
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.async = true;
-        script.onload = () => createCheckoutInstance(order, invoice, razorpayKey, resolve, reject);
-        script.onerror = () => {
-          reject(new Error('Failed to load Razorpay SDK'));
+          const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              "Authorization": `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+
+          const verificationData = await verifyResponse.json();
+          console.log('Verification result:', verificationData);
+
+          if (verificationData.status === 'ok') {
+            await loadInvoices();
+            alert('Payment successful! Invoice status updated.');
+            resolve();
+          } else {
+            throw new Error('Payment verification failed');
+          }
+        } catch (error) {
+          console.error('Payment verification error:', error);
+          alert('Payment completed but verification failed. Please contact support.');
+          reject(error);
+        } finally {
           setIsPaying(false);
           setPayingInvoiceId(null);
-        };
-        document.body.appendChild(script);
-      }
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          console.log('Payment modal closed by user');
+          setIsPaying(false);
+          setPayingInvoiceId(null);
+          reject(new Error('Payment cancelled'));
+        }
+      },
+      // Additional options to prevent standard_checkout
+      method: {
+        netbanking: false,
+        card: true,
+        wallet: false,
+        upi: false,
+      },
+      retry: {
+        enabled: false,
+      },
+      timeout: 900, // 15 minutes
+      remember_customer: false
     };
 
-    loadRazorpay();
-  });
-};
-
-const createCheckoutInstance = (order, invoice, razorpayKey, resolve, reject) => {
-  const options = {
-    key: razorpayKey,
-    amount: order.amount,
-    currency: order.currency,
-    name: 'Invertio Solutions',
-    description: `Payment for Invoice #${invoice.id}`,
-    order_id: order.id,
-    prefill: {
-      name: currentUser.name?.trim() || 'Customer',
-      email: currentUser.email?.trim() || '',
-      contact: '' // Add if you have contact info
-    },
-    theme: {
-      color: '#3F058F'
-    },
-    handler: async function (response) {
-      try {
-        console.log('Payment successful, verifying...', response);
-        
-        const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature
-          })
-        });
-
-        const verificationData = await verifyResponse.json();
-        console.log('Verification result:', verificationData);
-
-        if (verificationData.status === 'ok') {
-          await loadInvoices();
-          alert('Payment successful! Invoice status updated.');
-          resolve();
-        } else {
-          throw new Error('Payment verification failed');
-        }
-      } catch (error) {
-        console.error('Payment verification error:', error);
-        alert('Payment completed but verification failed. Please contact support.');
-        reject(error);
-      } finally {
-        setIsPaying(false);
-        setPayingInvoiceId(null);
-      }
-    },
-    modal: {
-      ondismiss: function () {
-        console.log('Payment modal closed by user');
-        setIsPaying(false);
-        setPayingInvoiceId(null);
-        reject(new Error('Payment cancelled'));
-      }
-    },
-    // Additional options to prevent standard_checkout
-    method: {
-      netbanking: false,
-      card: true,
-      wallet: false,
-      upi: false,
-    },
-    retry: {
-      enabled: false,
-    },
-    timeout: 900, // 15 minutes
-    remember_customer: false
-  };
-
-  try {
-    const rzp = new window.Razorpay(options);
-    rzp.open();
-  } catch (error) {
-    console.error('Error opening Razorpay checkout:', error);
-    reject(error);
-    setIsPaying(false);
-    setPayingInvoiceId(null);
-  }
-};
-
-// Separate function for Razorpay checkout
-const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
-  const options = {
-    key: razorpayKey,
-    amount: order.amount,
-    currency: order.currency,
-    name: 'TaxPortal',
-    description: `Payment for Invoice ${invoice.id}`,
-    order_id: order.id,
-    prefill: {
-      name: currentUser.name || '',
-      email: currentUser.email || '',
-    },
-    theme: {
-      color: '#2563EB'
-    },
-    handler: async function (response) {
-      try {
-        console.log('Payment response:', response);
-        
-        const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature
-          })
-        });
-
-        const data = await verifyResponse.json();
-        console.log('Verification response:', data);
-
-        if (data.status === 'ok') {
-          await loadInvoices(); // Refresh the invoices list
-          alert('Payment successful! Invoice status updated to Paid.');
-          resolve();
-        } else {
-          alert('Payment verification failed. Please contact support.');
-          reject(new Error('Verification failed'));
-        }
-      } catch (error) {
-        console.error('Verification Error:', error);
-        alert('Error verifying payment. Please contact support.');
-        reject(error);
-      }
-    },
-    modal: {
-      ondismiss: function () {
-        console.log('Payment modal dismissed');
-        reject(new Error('Payment cancelled by user'));
-      }
+    try {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error('Error opening Razorpay checkout:', error);
+      reject(error);
+      setIsPaying(false);
+      setPayingInvoiceId(null);
     }
   };
 
-  const rzp = new window.Razorpay(options);
-  rzp.open();
-};
+  // Separate function for Razorpay checkout
+  const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
+    const options = {
+      key: razorpayKey,
+      amount: order.amount,
+      currency: order.currency,
+      name: 'TaxPortal',
+      description: `Payment for Invoice ${invoice.id}`,
+      order_id: order.id,
+      prefill: {
+        name: currentUser.name || '',
+        email: currentUser.email || '',
+      },
+      theme: {
+        color: '#2563EB'
+      },
+      handler: async function (response) {
+        try {
+          // console.log('Payment response:', response);
+
+          const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              "Authorization": `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+
+          const data = await verifyResponse.json();
+          console.log('Verification response:', data);
+
+          if (data.status === 'ok') {
+            await loadInvoices(); // Refresh the invoices list
+            alert('Payment successful! Invoice status updated to Paid.');
+            resolve();
+          } else {
+            alert('Payment verification failed. Please contact support.');
+            reject(new Error('Verification failed'));
+          }
+        } catch (error) {
+          console.error('Verification Error:', error);
+          alert('Error verifying payment. Please contact support.');
+          reject(error);
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          console.log('Payment modal dismissed');
+          reject(new Error('Payment cancelled by user'));
+        }
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  };
   const statusOptions = [
     { value: "all", label: "All Statuses" },
     { value: "Paid", label: "Paid" },
@@ -644,599 +727,636 @@ const openRazorpayCheckout = (order, invoice, razorpayKey, resolve, reject) => {
 
   return (
     <motion.div className=" pl-3  flex flex-col">
-    <div className="max-h-[calc(100vh-100px)] overflow-y-auto ">
-      {/* View Invoice Modal */}
-      {viewInvoice && (
-        <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto relative">
-            <button
-              onClick={() => setViewInvoice(null)}
-              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
+      <div className="max-h-[calc(100vh-100px)] overflow-y-auto ">
+        {/* View Invoice Modal */}
+        {viewInvoice && (
+          <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto relative">
+              <button
+                onClick={() => setViewInvoice(null)}
+                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
 
-            {/* Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <div>
-                <img src="/invertio-logo-full.jpg" alt="full-logo" className="w-20 h-20" />
-                <h3 className="font-bold text-gray-900 mb-2">Invertio Solutions</h3>
-                <p className="text-sm text-gray-700">5 Penn Plaza, 14th Floor, New York, NY 10001, US</p>
-                <p className="text-sm text-gray-700 mt-1">GSTIN: 36AAHCJ2304M1ZK</p>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-black">TAX INVOICE</h1>
-                <div className="mt-2 text-sm text-black">
-                  <p><span className="font-medium">Invoice #:</span> {viewInvoice.id}</p>
-                  <p><span className="font-medium">Invoice Date:</span> {formatDate(viewInvoice.createdAt)}</p>
-                  <p><span className="font-medium">Due Date:</span> {formatDate(viewInvoice.dueDate)}</p>
-                  <p><span className="font-medium">Payment terms:</span> Immediate</p>
-                  <p><span className="font-medium">Accepted Methods:</span> ACH & Fedwire</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="p-6">
-              {/* Company and Bill To Section */}
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
+              {/* Header */}
+              <div className="flex justify-between items-center p-6 border-b border-gray-200">
                 <div>
-                  <h3 className="font-bold text-gray-400 mb-2">Bill to:</h3>
-                  <p className="text-sm text-black font-bold">{viewInvoice.customerName}</p>
-                  <p className="text-sm text-gray-700">Customer ID: {viewInvoice.customerId}</p>
+                  <img src="/invertio-logo-full.jpg" alt="full-logo" className="w-20 h-20" />
+                  <h3 className="font-bold text-gray-900 mb-2">Invertio Solutions</h3>
+                  <p className="text-sm text-gray-700">5 Penn Plaza, 14th Floor, New York, NY 10001, US</p>
+                  <p className="text-sm text-gray-700 mt-1">GSTIN: 36AAHCJ2304M1ZK</p>
                 </div>
-              </div>
-
-              {/* Items Table */}
-              <div className="bg-white  rounded-lg overflow-hidden mb-6 shadow-md">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="py-3 px-4 text-left text-sm font-bold text-black border-b border-gray-200">Description</th>
-                      <th className="py-3 px-4 text-left text-sm font-bold text-black border-b border-gray-200">Return Type</th>
-                      <th className="py-3 px-4 text-right text-sm font-bold text-black border-b border-gray-200">Amount (USD)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="py-3 px-4 text-sm text-gray-700 border-b border-gray-200">{viewInvoice.returnName}</td>
-                      <td className="py-3 px-4 text-sm text-gray-700 border-b border-gray-200">{viewInvoice.returnType}</td>
-                      <td className="py-3 px-4 text-sm text-gray-700 text-right border-b border-gray-200">${viewInvoice.invoiceAmount.toFixed(2)}</td>
-                    </tr>
-
-                    {/* Total row */}
-                    <tr className="bg-blue-100">
-                      <td className="py-4 px-4 text-lg font-bold text-gray-900" colSpan={2}>Total (USD)</td>
-                      <td className="py-4 px-4 text-lg font-bold text-gray-900 text-right">${viewInvoice.invoiceAmount.toFixed(2)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Bank Details */}
-              <h3 className="font-bold text-gray-400 mb-3">Bank details:</h3>
-
-              <div className="bg-gray-100 border border-gray-200 text-black rounded-lg p-4 mb-6 flex gap-3">
-                <div className="rounded-full w-20 h-16 flex justify-center items-center border border-gray-200 bg-white">
-                  <p className="text-gray-700 font-bold"> <span className="text-red-700 font-bold">CF</span>SB</p>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
-                  <div>
-                    <p><span className="font-medium text-black">Payment method:</span> ACH or Fedwire</p>
-                    <p><span className="font-medium text-black">Account number:</span> 8331054346</p>
-                    <p><span className="font-medium text-black">ACH routing number:</span> 026073150</p>
-                    <p><span className="font-medium text-black">Fedwire routing number:</span> 026073008</p>
-                    <p><span className="font-medium text-black">Account type:</span> Business checking account</p>
-                    <p><span className="font-medium text-black">Bank name:</span> Community Federal Savings Bank</p>
-                    <p><span className="font-medium text-black">Beneficiary address:</span> 5 Penn Plaza, 14th Floor, New York, NY 10001, US</p>
-                    <p><span className="font-medium text-black">Account holder name:</span> INVERTIO SOLUTIONS PRIVATE LIMITED</p>
+                <div>
+                  <h1 className="text-2xl font-bold text-black">TAX INVOICE</h1>
+                  <div className="mt-2 text-sm text-black">
+                    <p><span className="font-medium">Invoice #:</span> {viewInvoice.id}</p>
+                    <p><span className="font-medium">Invoice Date:</span> {formatDate(viewInvoice.createdAt)}</p>
+                    <p><span className="font-medium">Due Date:</span> {formatDate(viewInvoice.dueDate)}</p>
+                    <p><span className="font-medium">Payment terms:</span> Immediate</p>
+                    <p><span className="font-medium">Accepted Methods:</span> ACH & Fedwire</p>
                   </div>
                 </div>
               </div>
 
-              {/* Notes */}
-              <div className="text-sm text-gray-700">
-                <p className="font-medium">Notes</p>
-                <p>Thank you for your continued trust in our services.</p>
-              </div>
+              {/* Body */}
+              <div className="p-6">
+                {/* Company and Bill To Section */}
+                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                  <div>
+                    <h3 className="font-bold text-gray-400 mb-2">Bill to:</h3>
+                    <p className="text-sm text-black font-bold">{viewInvoice.customerName}</p>
+                    <p className="text-sm text-gray-700">Customer ID: {viewInvoice.customerId}</p>
+                  </div>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-4 mt-6">
+                {/* Items Table */}
+                <div className="bg-white  rounded-lg overflow-hidden mb-6 shadow-md">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="py-3 px-4 text-left text-sm font-bold text-black border-b border-gray-200">Description</th>
+                        <th className="py-3 px-4 text-left text-sm font-bold text-black border-b border-gray-200">Return Type</th>
+                        <th className="py-3 px-4 text-right text-sm font-bold text-black border-b border-gray-200">Amount (USD)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="py-3 px-4 text-sm text-gray-700 border-b border-gray-200">{viewInvoice.returnName}</td>
+                        <td className="py-3 px-4 text-sm text-gray-700 border-b border-gray-200">{viewInvoice.returnType}</td>
+                        <td className="py-3 px-4 text-sm text-gray-700 text-right border-b border-gray-200">${viewInvoice.invoiceAmount.toFixed(2)}</td>
+                      </tr>
 
-                <button
-                  onClick={() => setViewInvoice(null)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-                >
-                  Close
-                </button>
+                      {/* Total row */}
+                      <tr className="bg-blue-100">
+                        <td className="py-4 px-4 text-lg font-bold text-gray-900" colSpan={2}>Total (USD)</td>
+                        <td className="py-4 px-4 text-lg font-bold text-gray-900 text-right">${viewInvoice.invoiceAmount.toFixed(2)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Bank Details */}
+                <h3 className="font-bold text-gray-400 mb-3">Bank details:</h3>
+
+                <div className="bg-gray-100 border border-gray-200 text-black rounded-lg p-4 mb-6 flex gap-3">
+                  <div className="rounded-full w-20 h-16 flex justify-center items-center border border-gray-200 bg-white">
+                    <p className="text-gray-700 font-bold"> <span className="text-red-700 font-bold">CF</span>SB</p>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div>
+                      <p><span className="font-medium text-black">Payment method:</span> ACH or Fedwire</p>
+                      <p><span className="font-medium text-black">Account number:</span> 8331054346</p>
+                      <p><span className="font-medium text-black">ACH routing number:</span> 026073150</p>
+                      <p><span className="font-medium text-black">Fedwire routing number:</span> 026073008</p>
+                      <p><span className="font-medium text-black">Account type:</span> Business checking account</p>
+                      <p><span className="font-medium text-black">Bank name:</span> Community Federal Savings Bank</p>
+                      <p><span className="font-medium text-black">Beneficiary address:</span> 5 Penn Plaza, 14th Floor, New York, NY 10001, US</p>
+                      <p><span className="font-medium text-black">Account holder name:</span> INVERTIO SOLUTIONS PRIVATE LIMITED</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="text-sm text-gray-700">
+                  <p className="font-medium">Notes</p>
+                  <p>Thank you for your continued trust in our services.</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-4 mt-6">
+
+                  <button
+                    onClick={() => setViewInvoice(null)}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-     {filteredInvoices.length > 0 && (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.3 }}
-    className="mt-4"
-  >
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-5"> {/* Changed to 5 columns for All status */}
-      {/* All Status Card */}
-      <motion.div
-        whileHover={{ y: -4, scale: 1.02 }}
-        transition={{ duration: 0.2 }}
-        onClick={() => setFilterStatus(filterStatus === "all" ? "all" : "all")}
-        className={`p-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all rounded-tl-2xl cursor-pointer`}
-      >
-        {/* Checkmark indicator for All */}
-        {filterStatus === "all" && (
-          <div className="absolute -top-4 -right-2">
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-full p-1 shadow-lg flex items-center justify-center">
-              <Check className="h-5 w-5 text-white" />
             </div>
           </div>
         )}
+        
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-4"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+              {/* All Status Card */}
+              <motion.div
+                whileHover={{ y: -4, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setFilterStatus(filterStatus === "all" ? "all" : "all")}
+                className={`p-2 bg-gradient-to-r from-purple-500 to-purple-600 relative text-white mt-2 rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all rounded-tl-2xl cursor-pointer`}
+              >
+                {/* Checkmark indicator for All */}
+                {filterStatus === "all" && (
+                  <div className="absolute -top-4 -right-2">
+                    <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-full p-1 shadow-lg flex items-center justify-center">
+                      <Check className="h-5 w-5 text-white" />
+                    </div>
+                  </div>
+                )}
 
-        <div className="flex items-center gap-5 mb-1 w-full">
-          {/* Gradient Border + Icon */}
-          <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-purple-600">
-            <div className="p-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-600 flex items-center justify-center">
-              <FileText className="h-5 w-5 text-white" />
+                <div className="flex items-center gap-5 mb-1 w-full">
+                  {/* Gradient Border + Icon */}
+                  <div className="flex items-center justify-center w-1/6 border-b-2 pb-2 border-purple-600">
+                    <div className="p-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-600 flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
+                  </div>
+
+                  <h3 className="text-sm font-medium text-white mb-1">
+                    Total Transactions
+                  </h3>
+                </div>
+
+                <div>
+                  <div className="text-lg font-bold text-white pl-2 mt-2">
+                    {invoices.length}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Other Status Cards */}
+              {statusOptions.slice(1).map((status, index, arr) => {
+                const count = invoices.filter((a) => a.status === status.value).length;
+                const total = invoices
+                  .filter((a) => a.status === status.value)
+                  .reduce((sum, invoice) => sum + invoice.invoiceAmount, 0);
+
+                const statusIcons = {
+                  Paid: <CheckCircle className="h-5 w-5 text-green-500" />,
+                  Pending: <Clock className="h-5 w-5 text-amber-500" />,
+                  Overdue: <AlertCircle className="h-5 w-5 text-red-500" />,
+                  Draft: <FileText className="h-5 w-5 text-blue-500" />
+                };
+
+                const statusGradients = {
+                  Paid: {
+                    gradient: "bg-gradient-to-r from-emerald-500 to-emerald-600",
+                    from: "green",
+                    to: "green"
+                  },
+                  Pending: {
+                    gradient: "bg-gradient-to-r from-amber-400 to-amber-500",
+                    from: "amber",
+                    to: "amber"
+                  },
+                  Overdue: {
+                    gradient: "bg-gradient-to-r from-red-400 to-red-500",
+                    from: "red",
+                    to: "red"
+                  },
+                  Draft: {
+                    gradient: "bg-gradient-to-r from-blue-400 to-blue-500",
+                    from: "blue",
+                    to: "blue"
+                  }
+                };
+
+                const IconComponent = statusIcons[status.value] || <FileText className="h-5 w-5 text-white" />;
+                const gradientInfo = statusGradients[status.value] || {
+                  gradient: "bg-gradient-to-r from-gray-400 to-gray-500",
+                  from: "gray",
+                  to: "gray"
+                };
+
+                // Conditional radius
+                const extraRadius = index === arr.length - 1 ? "rounded-br-2xl" : "";
+
+                return (
+                  <motion.div
+                    key={status.value}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => setFilterStatus(status.value === filterStatus ? "all" : status.value)}
+                    className={`p-2 ${gradientInfo.gradient} text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all ${extraRadius} relative cursor-pointer`}
+                  >
+                    {/* Checkmark indicator */}
+                    {filterStatus === status.value && (
+                      <div className="absolute -top-4 -right-2">
+                        <div className={`${gradientInfo.gradient} rounded-full p-1 shadow-lg flex items-center justify-center`}>
+                          <Check className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-5 mb-1 w-full">
+                      {/* Gradient Border + Icon */}
+                      <div className={`flex items-center justify-center w-1/6 border-b-2 pb-2 border-${gradientInfo.from}-600`}>
+                        <div className={`p-2 rounded-full bg-gradient-to-r from-${gradientInfo.from}-600 to-${gradientInfo.to}-600 flex items-center justify-center`}>
+                          {React.cloneElement(IconComponent, { className: "h-5 w-5 text-white" })}
+                        </div>
+                      </div>
+
+                      <h3 className="text-sm font-medium text-white mb-1">
+                        {status.label}
+                      </h3>
+                    </div>
+
+                    <div>
+                      <div className="text-lg font-bold text-white pl-2 mt-2">
+                        {count}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        
+
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-lg shadow-sm border p-1 mt-5 "
+        >
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            {/* Search Input */}
+            <div className="w-full">
+              <div className="flex items-center w-full gap-3">
+                {/* Search Box */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search returns by ID, type, status, or name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Filter Button */}
+                <div className="px-4 py-3 bg-gray-200 p-1 rounded-md">
+                  <button
+                    onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+                    className="flex items-center justify-center gap-1 text-black hover:text-gray-600"
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline text-black">Filters</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Active Filters Display */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                <div className="pr-1 border-r-2 pl-2">
+                  <h1 className="text-gray-700 font-bold">Applied Filters</h1>
+                  {(searchTerm || filterStatus !== "all" || dateFilter !== "all") && (
+                    <button
+                      onClick={clearAllFilters}
+                      className=" text-sm text-orange-600 hover:text-orange-700 transition-colors"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </div>
+                {filterStatus && filterStatus !== "all" && (
+                  <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
+                    Status: {statusOptions.find(opt => opt.value === filterStatus)?.label}
+                    <button
+                      onClick={() => setFilterStatus('all')}
+                      className="ml-2 text-blue-600 hover:text-blue-800"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+                {dateFilter && dateFilter !== "all" && (
+                  <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center">
+                    Date: {dateOptions.find(opt => opt.value === dateFilter)?.label}
+                    <button
+                      onClick={() => setDateFilter('all')}
+                      className="ml-2 text-green-600 hover:text-green-800"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <h3 className="text-sm font-medium text-white mb-1">
-            Total Transactions
-          </h3>
-        </div>
+          {/* Filter Modal */}
+          {isFilterModalOpen && (
+            <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Filters</h3>
+                  <button
+                    onClick={() => setIsFilterModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
 
-        <div>
-          <div className="text-lg font-bold text-white pl-2 mt-2">
-            {invoices.length}
-          </div>
-        </div>
-      </motion.div>
+                <div className="space-y-4">
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+                    <select
+                      value={tempFilterStatus}
+                      onChange={(e) => setTempFilterStatus(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {statusOptions.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-      {/* Other Status Cards */}
-      {statusOptions.slice(1).map((status, index, arr) => {
-        const count = invoices.filter((a) => a.status === status.value).length;
-        const total = invoices
-          .filter((a) => a.status === status.value)
-          .reduce((sum, invoice) => sum + invoice.invoiceAmount, 0);
+                  {/* Date Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Date</label>
+                    <select
+                      value={tempDateFilter}
+                      onChange={(e) => setTempDateFilter(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {dateOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-        const statusIcons = {
-          Paid: <CheckCircle className="h-5 w-5 text-green-500" />,
-          Pending: <Clock className="h-5 w-5 text-amber-500" />,
-          Overdue: <AlertCircle className="h-5 w-5 text-red-500" />,
-          Draft: <FileText className="h-5 w-5 text-blue-500" />
-        };
-
-        const statusGradients = {
-          Paid: {
-            gradient: "bg-gradient-to-r from-emerald-500 to-emerald-600",
-            from: "green",
-            to: "green"
-          },
-          Pending: {
-            gradient: "bg-gradient-to-r from-amber-400 to-amber-500",
-            from: "amber",
-            to: "amber"
-          },
-          Overdue: {
-            gradient: "bg-gradient-to-r from-red-400 to-red-500",
-            from: "red",
-            to: "red"
-          },
-          Draft: {
-            gradient: "bg-gradient-to-r from-blue-400 to-blue-500",
-            from: "blue",
-            to: "blue"
-          }
-        };
-
-        const IconComponent = statusIcons[status.value] || <FileText className="h-5 w-5 text-white" />;
-        const gradientInfo = statusGradients[status.value] || {
-          gradient: "bg-gradient-to-r from-gray-400 to-gray-500",
-          from: "gray",
-          to: "gray"
-        };
-
-        // Conditional radius
-        const extraRadius = index === arr.length - 1 ? "rounded-br-2xl" : "";
-
-        return (
-          <motion.div
-            key={status.value}
-            whileHover={{ y: -4, scale: 1.02 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setFilterStatus(status.value === filterStatus ? "all" : status.value)}
-            className={`p-2 ${gradientInfo.gradient} text-white rounded-sm shadow-md hover:shadow-lg border border-white border-opacity-20 transition-all ${extraRadius} relative cursor-pointer`}
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setTempFilterStatus("all");
+                      setTempDateFilter("all");
+                      setIsFilterModalOpen(false);
+                    }}
+                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={applyFilters}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </motion.div>
+               {/* Invoices Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-lg shadow-sm border overflow-hidden mt-4"
+        >
+          <div
+            className=""
+            style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
           >
-            {/* Checkmark indicator */}
-            {filterStatus === status.value && (
-              <div className="absolute -top-4 -right-2">
-                <div className={`${gradientInfo.gradient} rounded-full p-1 shadow-lg flex items-center justify-center`}>
-                  <Check className="h-5 w-5 text-white" />
+           
+              {/* <div className="min-h-[400px] max-h-[500px] overflow-y-auto"> */}
+                 {filteredInvoices.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="text-6xl mb-4">📝</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Invoices Found</h3>
+                <p className="text-gray-600">
+                  {searchTerm 
+            ? "Try adjusting your search criteria."
+            : filterStatus !== "all" && dateFilter !== "all"
+            ? `No ${filterStatus.toLowerCase()} invoices found for ${dateOptions.find(opt => opt.value === dateFilter)?.label.toLowerCase()}.`
+            : filterStatus !== "all"
+            ? `No ${filterStatus.toLowerCase()} invoices found.`
+            : dateFilter !== "all"
+            ? `No invoices found for ${dateOptions.find(opt => opt.value === dateFilter)?.label.toLowerCase()}.`
+            : "No invoices available."}
+                </p>
+              </div>
+            ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-200 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        SN.NO
+                      </th>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        Customer
+                      </th>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        Return
+                      </th>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        Amount
+                      </th>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        Status
+                      </th>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        Created
+                      </th>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        Due Date
+                      </th>
+                      <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentRows.map((invoice, index) => (
+                      <motion.tr
+                        key={invoice.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => setSelectedRowId(invoice.id)}
+                        className={`cursor-pointer  ${selectedRowId === invoice.id
+                            ? "bg-indigo-50 shadow-lg"
+                            : "hover:bg-gray-50 hover:shadow-md"
+                          }`}
+                      >
+                        {/* SN.NO */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                          {indexOfFirstRow + index + 1}
+                        </td>
+
+                        {/* Customer */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                          <div className="text-sm text-gray-900">{invoice.customerName}</div>
+                          <div className="text-xs text-gray-500">ID: {invoice.customerId}</div>
+                        </td>
+
+                        {/* Return */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                          <div>
+                            <div className="text-sm text-gray-900">{invoice.returnName}</div>
+                            <div className="text-sm text-gray-500">{invoice.returnType}</div>
+                          </div>
+                        </td>
+
+                        {/* Amount */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                          <div className="text-sm font-medium text-gray-900">
+                            ${invoice.invoiceAmount.toFixed(2)} USD
+                          </div>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                          <span
+                            className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
+                              invoice.status
+                            )}`}
+                          >
+                            {invoice.status}
+                          </span>
+                        </td>
+
+                        {/* Created */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+                          {formatDate(invoice.createdAt)}
+                        </td>
+
+                        {/* Due Date */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+                          {formatDate(invoice.dueDate)}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
+                          <div className="flex items-center justify-center space-x-2">
+                            {/* View */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewInvoice(invoice);
+                              }}
+                              className="text-blue-600 hover:text-blue-700 transition-colors"
+                              title="View Invoice"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+
+                            {/* Download */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadInvoice(invoice);
+                              }}
+                              disabled={isDownloading}
+                              className="text-green-600 hover:text-green-700 transition-colors disabled:opacity-50"
+                              title="Download Invoice"
+                            >
+                              {isDownloading ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                              ) : (
+                                <Download className="w-4 h-4" />
+                              )}
+                            </button>
+
+                            {/* Pay / Completed */}
+                            {invoice.status.toLowerCase() === "pending" ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  payNow(invoice);
+                                }}
+                                disabled={isPaying && payingInvoiceId === invoice.id}
+                                className="text-purple-600 hover:text-purple-700 transition-colors disabled:opacity-50"
+                                title="Pay Invoice"
+                              >
+                                {isPaying && payingInvoiceId === invoice.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                                ) : (
+                                  <CreditCard className="w-4 h-4" />
+                                )}
+                              </button>
+                            ) : (
+                              <div className="text-green-600" title="Payment Completed">
+                                <CheckCircle className="w-4 h-4" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+)}
+              {/* </div> */}
+            
+
+            {/* Pagination - Only show when there are invoices */}
+            {filteredInvoices.length > 0 && (
+              <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200 bg-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, filteredInvoices.length)} of{" "}
+                  {filteredInvoices.length} results
+                </p>
+
+                <div className="flex items-center space-x-2">
+                  {/* Previous */}
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+          bg-white text-gray-700 hover:bg-gray-100 
+          disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+
+                  {/* Page Numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`px-3 py-1 text-sm border rounded-md transition-colors 
+            ${currentPage === i + 1
+                          ? "bg-[#3F058F] text-white border-[#3F058F]"
+                          : "bg-white text-gray-700 hover:bg-gray-100"
+                        }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+
+                  {/* Next */}
+                  <button
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    disabled={currentPage >= totalPages}
+                    className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
+          bg-white text-gray-700 hover:bg-gray-100 
+          disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             )}
-
-            <div className="flex items-center gap-5 mb-1 w-full">
-              {/* Gradient Border + Icon */}
-              <div className={`flex items-center justify-center w-1/6 border-b-2 pb-2 border-${gradientInfo.from}-600`}>
-                <div className={`p-2 rounded-full bg-gradient-to-r from-${gradientInfo.from}-600 to-${gradientInfo.to}-600 flex items-center justify-center`}>
-                  {React.cloneElement(IconComponent, { className: "h-5 w-5 text-white" })}
-                </div>
-              </div>
-
-              <h3 className="text-sm font-medium text-white mb-1">
-                {status.label}
-              </h3>
-            </div>
-
-            <div>
-              <div className="text-lg font-bold text-white pl-2 mt-2">
-                {count}
-              </div>
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  </motion.div>
-)}
-
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-lg shadow-sm border p-1 mt-5 "
-      >
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          {/* Search Input */}
-          <div className="w-full">
-            <div className="flex items-center w-full gap-3">
-              {/* Search Box */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search returns by ID, type, status, or name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Filter Button */}
-              <div className="px-4 py-3 bg-gray-200 p-1 rounded-md">
-                <button
-                  onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
-                  className="flex items-center justify-center gap-1 text-black hover:text-gray-600"
-                >
-                  <Filter className="w-4 h-4" />
-                  <span className="hidden sm:inline text-black">Filters</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Active Filters Display */}
-            <div className="flex flex-wrap gap-2 mt-2">
-              <div className="pr-1 border-r-2 pl-2">
-                <h1 className="text-gray-700 font-bold">Applied Filters</h1>
-                {(searchTerm || filterStatus !== "all") && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm("")
-                      setFilterStatus("all")
-                    }}
-                    className=" text-sm text-orange-600 hover:text-orange-700 transition-colors"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-              {filterStatus && filterStatus !== "all" && (
-                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
-                  Status: {statusOptions.find(opt => opt.value === filterStatus)?.label}
-                  <button
-                    onClick={() => setFilterStatus('all')}
-                    className="ml-2 text-blue-600 hover:text-blue-800"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
-
-        </div>
-
-        {/* Filter Modal */}
-        {isFilterModalOpen && (
-          <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Filters</h3>
-                <button
-                  onClick={() => setIsFilterModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Add more filter options here as needed */}
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setFilterStatus('all');
-                    setIsFilterModalOpen(false);
-                  }}
-                  className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-                >
-                  Clear All
-                </button>
-                <button
-                  onClick={() => setIsFilterModalOpen(false)}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </motion.div>
-
-      {/* Invoices Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white rounded-lg shadow-sm border overflow-hidden mt-4"
-      >
-        {filteredInvoices.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Invoices Found</h3>
-            <p className="text-gray-600">
-              {searchTerm || filterStatus !== "all"
-                ? "Try adjusting your search or filter criteria."
-                : "No invoices available."}
-            </p>
-          </div>
-        ) : (
-        <div
-  className=""
-  style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
->
-  {/* Scrollable Table Wrapper */}
-  {/* <div className="min-h-[400px] max-h-[500px] overflow-y-auto"> */}
-    <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50 sticky top-0 z-10">
-        <tr>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            SN.NO
-          </th>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Customer
-          </th>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Return
-          </th>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Amount
-          </th>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Status
-          </th>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Created
-          </th>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Due Date
-          </th>
-          <th className="px-6 py-5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider align-middle">
-            Actions
-          </th>
-        </tr>
-      </thead>
-
-      <tbody className="bg-white divide-y divide-gray-200">
-        {currentRows.map((invoice, index) => (
-          <motion.tr
-            key={invoice.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => setSelectedRowId(invoice.id)}
-            className={`cursor-pointer  ${
-              selectedRowId === invoice.id
-                ? "bg-indigo-50 shadow-lg"
-                : "hover:bg-gray-50 hover:shadow-md"
-            }`}
-          >
-            {/* SN.NO */}
-            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-              {indexOfFirstRow + index + 1}
-            </td>
-
-            {/* Customer */}
-            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-              <div className="text-sm text-gray-900">{invoice.customerName}</div>
-              <div className="text-xs text-gray-500">ID: {invoice.customerId}</div>
-            </td>
-
-            {/* Return */}
-            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-              <div>
-                <div className="text-sm text-gray-900">{invoice.returnName}</div>
-                <div className="text-sm text-gray-500">{invoice.returnType}</div>
-              </div>
-            </td>
-
-            {/* Amount */}
-            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-              <div className="text-sm font-medium text-gray-900">
-                ${invoice.invoiceAmount.toFixed(2)} USD
-              </div>
-            </td>
-
-            {/* Status */}
-            <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
-              <span
-                className={`inline-flex justify-center items-center min-w-[120px] px-4 py-2 text-xs font-semibold rounded-lg ${getStatusColor(
-                  invoice.status
-                )}`}
-              >
-                {invoice.status}
-              </span>
-            </td>
-
-            {/* Created */}
-            <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
-              {formatDate(invoice.createdAt)}
-            </td>
-
-            {/* Due Date */}
-            <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
-              {formatDate(invoice.dueDate)}
-            </td>
-
-            {/* Actions */}
-            <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-500 align-middle">
-              <div className="flex items-center justify-center space-x-2">
-                {/* View */}
-                <button
-                  onClick={() => handleViewInvoice(invoice)}
-                  className="text-blue-600 hover:text-blue-700 transition-colors"
-                  title="View Invoice"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-
-                {/* Download */}
-                <button
-                  onClick={() => handleDownloadInvoice(invoice)}
-                  disabled={isDownloading}
-                  className="text-green-600 hover:text-green-700 transition-colors disabled:opacity-50"
-                  title="Download Invoice"
-                >
-                  {isDownloading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                </button>
-
-                {/* Pay / Completed */}
-                {invoice.status.toLowerCase() === "pending" ? (
-                  <button
-                    onClick={() => payNow(invoice)}
-                    disabled={isPaying && payingInvoiceId === invoice.id}
-                    className="text-purple-600 hover:text-purple-700 transition-colors disabled:opacity-50"
-                    title="Pay Invoice"
-                  >
-                    {isPaying && payingInvoiceId === invoice.id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                    ) : (
-                      <CreditCard className="w-4 h-4" />
-                    )}
-                  </button>
-                ) : (
-                  <div className="text-green-600" title="Payment Completed">
-                    <CheckCircle className="w-4 h-4" />
-                  </div>
-                )}
-              </div>
-            </td>
-          </motion.tr>
-        ))}
-      </tbody>
-    </table>
-  {/* </div> */}
-
-  {/* Pagination */}
-  <div className="flex justify-between items-center sticky bottom-0 mt-4 p-4 border-t border-gray-200 bg-white">
-    <p className="text-sm text-gray-600">
-      Showing {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, filteredInvoices.length)} of{" "}
-      {filteredInvoices.length} results
-    </p>
-
-    <div className="flex items-center space-x-2">
-      {/* Previous */}
-      <button
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-        className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
-          bg-white text-gray-700 hover:bg-gray-100 
-          disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        Previous
-      </button>
-
-      {/* Page Numbers */}
-      {Array.from({ length: totalPages }, (_, i) => (
-        <button
-          key={i + 1}
-          onClick={() => setCurrentPage(i + 1)}
-          className={`px-3 py-1 text-sm border rounded-md transition-colors 
-            ${
-              currentPage === i + 1
-                ? "bg-[#3F058F] text-white border-[#3F058F]"
-                : "bg-white text-gray-700 hover:bg-gray-100"
-            }`}
-        >
-          {i + 1}
-        </button>
-      ))}
-
-      {/* Next */}
-      <button
-        onClick={() => setCurrentPage((prev) => prev + 1)}
-        disabled={currentPage >= totalPages}
-        className="flex items-center gap-1 px-3 py-1 text-sm border rounded-md 
-          bg-white text-gray-700 hover:bg-gray-100 
-          disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Next
-        <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
-  </div>
-</div>
-
-        )}
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
